@@ -1,10 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  anonymousId,
+  getMonthlyUsage,
+  incrementMonthlyUsage,
+} from "@/lib/usage";
 
 type Mode = "blog" | "thread" | "catchcopy";
 
 const FREE_LIMIT = 1;
+const STORAGE_KEY = "cp_usage";
 
 const STANDARD_LINK =
   process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
@@ -28,8 +34,7 @@ const inputCls =
   "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-brand";
 
 function getUsage(): number {
-  if (typeof window === "undefined") return 0;
-  return Number(localStorage.getItem("cp_usage") || "0");
+  return getMonthlyUsage(STORAGE_KEY);
 }
 
 export default function ContentPilotClient() {
@@ -72,7 +77,10 @@ export default function ContentPilotClient() {
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-anon-id": anonymousId(),
+        },
         body: JSON.stringify({
           mode,
           topic,
@@ -82,14 +90,19 @@ export default function ContentPilotClient() {
         }),
       });
       const data = await res.json();
+      if (res.status === 429) {
+        setError("無料回数の上限に達しました。");
+        setShowUpgrade(true);
+        return;
+      }
       if (!res.ok) {
         setError(data.error || "エラーが発生しました");
         return;
       }
       setOutput(data.text || "");
       setIsDemo(Boolean(data.demo));
-      localStorage.setItem("cp_usage", String(usage + 1));
-      setUsage(usage + 1);
+      const next = incrementMonthlyUsage(STORAGE_KEY);
+      setUsage(next);
     } catch {
       setError("通信エラーが発生しました。時間をおいて再度お試しください。");
     } finally {

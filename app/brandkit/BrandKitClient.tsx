@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { renderOG, renderLogo, renderFavicon, canvasToDataURL, type BrandStyle } from "@/lib/brandCanvas";
+import { getMonthlyUsage, incrementMonthlyUsage } from "@/lib/usage";
 
 type Tool = "og" | "logo" | "favicon" | "qr";
 
 const BK_FREE_LIMIT = 2;
+const STORAGE_KEY = "bk_downloads";
 
 const STANDARD_LINK =
   process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
@@ -101,9 +103,7 @@ export default function BrandKitClient() {
   const [qrSize, setQrSize] = useState(512);
   const [qrData, setQrData] = useState("");
 
-  const [downloads, setDownloads] = useState<number>(() =>
-    typeof window === "undefined" ? 0 : Number(localStorage.getItem("bk_downloads") || "0"),
-  );
+  const [downloads, setDownloads] = useState<number>(() => getMonthlyUsage(STORAGE_KEY));
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const remaining = Math.max(BK_FREE_LIMIT - downloads, 0);
@@ -148,10 +148,9 @@ export default function BrandKitClient() {
     else if (tool === "logo") download(canvasToDataURL(renderLogo(style)), "logo.png");
     else if (tool === "favicon") download(canvasToDataURL(renderFavicon(style)), "favicon.png");
     else download(qrData, "qrcode.png");
-    const next = downloads + 1;
+    const next = incrementMonthlyUsage(STORAGE_KEY);
     setDownloads(next);
-    localStorage.setItem("bk_downloads", String(next));
-  }, [tool, style, qrData, freeLocked, downloads]);
+  }, [tool, style, qrData, freeLocked]);
 
   const snippet =
     tool === "og"

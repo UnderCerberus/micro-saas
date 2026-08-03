@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
+import { getUsage, incrementUsage, sanitizeAnonId } from "@/lib/limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
+
+/** ContentPilotのFree枠（月1回） */
+const CP_FREE_LIMIT = 1;
 
 type Mode = "blog" | "thread" | "catchcopy";
 
@@ -80,10 +84,21 @@ AI出力はそのまま使わず、必ず事実確認と加筆・修正を行い
 
 export async function POST(req: NextRequest) {
   try {
+    const anonId = sanitizeAnonId(req.headers.get("x-anon-id"));
+    const current = anonId ? await getUsage("contentpilot", anonId) : null;
+
+    if (current !== null && current >= CP_FREE_LIMIT) {
+      return Response.json(
+        { demo: false, error: "limit", message: "無料回数の上限に達しました。アップグレードをご検討ください。" },
+        { status: 429 },
+      );
+    }
+
     const body = (await req.json()) as Partial<GenRequest>;
     const mode: Mode = body.mode === "thread" || body.mode === "catchcopy" ? body.mode : "blog";
 
     if (!API_KEY) {
+      if (anonId) await incrementUsage("contentpilot", anonId);
       return Response.json({ text: DEMO_TEXT, demo: true });
     }
 
@@ -124,6 +139,7 @@ export async function POST(req: NextRequest) {
     if (!text) {
       return Response.json({ demo: false, error: "AIの応答が空でした" }, { status: 500 });
     }
+    if (anonId) await incrementUsage("contentpilot", anonId);
     return Response.json({ text, demo: false });
   } catch (e) {
     return Response.json(
