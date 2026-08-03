@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-noto), "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  --color-background: #09090b;
+  --color-foreground: #f4f4f5;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
