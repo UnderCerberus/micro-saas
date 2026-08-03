@@ -6,6 +6,13 @@ import { renderOG, renderLogo, renderFavicon, canvasToDataURL, type BrandStyle }
 
 type Tool = "og" | "logo" | "favicon" | "qr";
 
+const BK_FREE_LIMIT = 2;
+
+const STANDARD_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
+  "https://buy.stripe.com/test_8x2eVd8dr0vceF47oR6c000";
+const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
+
 const tools: { id: Tool; label: string }[] = [
   { id: "og", label: "OG画像" },
   { id: "logo", label: "ロゴ" },
@@ -94,6 +101,14 @@ export default function BrandKitClient() {
   const [qrSize, setQrSize] = useState(512);
   const [qrData, setQrData] = useState("");
 
+  const [downloads, setDownloads] = useState<number>(() =>
+    typeof window === "undefined" ? 0 : Number(localStorage.getItem("bk_downloads") || "0"),
+  );
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const remaining = Math.max(BK_FREE_LIMIT - downloads, 0);
+  const freeLocked = remaining <= 0;
+
   const style: BrandStyle = useMemo(
     () => ({
       brand,
@@ -110,6 +125,7 @@ export default function BrandKitClient() {
   );
 
   useEffect(() => {
+    if (freeLocked) return;
     let active = true;
     QRCode.toDataURL(qrValue || "https://example.com", {
       width: qrSize,
@@ -121,14 +137,21 @@ export default function BrandKitClient() {
     return () => {
       active = false;
     };
-  }, [qrValue, qrSize]);
+  }, [qrValue, qrSize, freeLocked]);
 
   const handleDownload = useCallback(() => {
+    if (freeLocked) {
+      setShowUpgrade(true);
+      return;
+    }
     if (tool === "og") download(canvasToDataURL(renderOG(style)), "og-image.png");
     else if (tool === "logo") download(canvasToDataURL(renderLogo(style)), "logo.png");
     else if (tool === "favicon") download(canvasToDataURL(renderFavicon(style)), "favicon.png");
     else download(qrData, "qrcode.png");
-  }, [tool, style, qrData]);
+    const next = downloads + 1;
+    setDownloads(next);
+    localStorage.setItem("bk_downloads", String(next));
+  }, [tool, style, qrData, freeLocked, downloads]);
 
   const snippet =
     tool === "og"
@@ -257,10 +280,34 @@ export default function BrandKitClient() {
 
         <div className="space-y-5">
           <div className="rounded-2xl border border-line bg-surface p-6">
-            <h2 className="mb-4 text-sm font-bold text-ink-soft">プレビュー</h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-ink-soft">プレビュー</h2>
+              <span
+                className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+                  remaining > 0
+                    ? "border border-brand/30 bg-brand-soft text-brand"
+                    : "border border-rose-500/30 bg-rose-500/10 text-rose-600"
+                }`}
+              >
+                FREE枠 残り{remaining}回
+              </span>
+            </div>
             {tool === "qr" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={qrData} alt="QRコードプレビュー" className="mx-auto max-h-72" />
+              freeLocked ? (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-zinc-50 px-6 py-14 text-center">
+                  <p className="text-sm font-bold text-ink">QRコード生成は有料プランでご利用いただけます</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowUpgrade(true)}
+                    className="text-sm font-bold text-brand hover:underline"
+                  >
+                    プランを見る →
+                  </button>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={qrData} alt="QRコードプレビュー" className="mx-auto max-h-72" />
+              )
             ) : (
               <BrandPreview
                 render={
@@ -276,7 +323,7 @@ export default function BrandKitClient() {
             onClick={handleDownload}
             className="w-full rounded-xl bg-brand px-5 py-3 font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark"
           >
-            PNGをダウンロード
+            {freeLocked ? "ダウンロードはアップグレード対象" : "PNGをダウンロード"}
           </button>
 
           <div className="rounded-2xl border border-line bg-zinc-50 p-5">
@@ -295,6 +342,65 @@ export default function BrandKitClient() {
           </div>
         </div>
       </div>
+
+      {showUpgrade && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowUpgrade(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl border border-line bg-surface p-6 shadow-2xl sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-black tracking-tight text-ink">
+              無料枠の上限に達しました
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+              BrandKitの無料ダウンロード（月{BK_FREE_LIMIT}回）を使い切りました。アップグレードするとダウンロード・QRコード生成を無制限にご利用いただけます。
+            </p>
+
+            <a
+              href={STANDARD_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-5 block rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 transition hover:border-brand-dark"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#6366F1] px-3 py-0.5 text-[11px] font-bold text-white">
+                おすすめ・一番人気
+              </span>
+              <span className="mt-2 flex items-center justify-between">
+                <span>
+                  <span className="block text-lg font-black text-ink">Standard</span>
+                  <span className="block text-xs text-ink-soft">BrandKit 全機能・ダウンロード可</span>
+                </span>
+                <span className="block text-xl font-black text-brand">¥500/月</span>
+              </span>
+              <span className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#2563EB]/30 transition group-hover:-translate-y-0.5 group-hover:bg-[#1d4ed8]">
+                今すぐアップグレード
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </span>
+            </a>
+
+            <a
+              href={PRO_LINK || "#"}
+              target={PRO_LINK ? "_blank" : undefined}
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
+            >
+              <span className="font-bold text-ink">Pro（全機能無制限）</span>
+              <span className="font-bold text-ink-soft">{PRO_LINK ? "¥900/月" : "準備中"}</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setShowUpgrade(false)}
+              className="mt-4 w-full rounded-xl px-5 py-2.5 text-sm font-bold text-ink-soft transition hover:bg-white hover:text-ink"
+            >
+              あとで検討する
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
