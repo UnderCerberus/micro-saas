@@ -2,6 +2,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import HeroGlowOrb from "@/components/HeroGlowOrb";
 import HeroWipe from "@/components/HeroWipe";
+import { WorkspaceProvider, OpenWorkspaceButton, type WorkspaceTab } from "@/components/Workspace";
 
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -70,12 +71,11 @@ const stats = [
   { value: "24/7", label: "自動で稼働" },
 ];
 
-const tools = [
+const tools: { title: string; desc: string; tab: WorkspaceTab; icon: React.ReactNode }[] = [
   {
     title: "BrandKit",
     desc: "ロゴ・OG画像・ファビコン・QRコードを数秒で生成。ブラウザ内でブランド素材を無制限に作成できます。",
-    href: "/brandkit",
-    cta: "BrandKitを試す",
+    tab: "brandkit",
     icon: (
       <>
         <path d="M12 2 2 7l10 5 10-5-10-5z" />
@@ -87,8 +87,7 @@ const tools = [
   {
     title: "ContentPilot",
     desc: "ブログ記事・Xスレッド・キャッチコピーをAIが自動生成。日本語最適化で質の高いコンテンツを即座に。",
-    href: "/contentpilot",
-    cta: "ContentPilotを試す",
+    tab: "contentpilot",
     icon: (
       <>
         <path d="M12 3l1.8 4.8L18.6 9.6l-4.8 1.8L12 16.2l-1.8-4.8L5.4 9.6l4.8-1.8L12 3z" />
@@ -100,6 +99,7 @@ const tools = [
 
 export default function Home() {
   return (
+    <WorkspaceProvider>
     <div className="bg-base">
       {/* ===== 1. HERO ===== */}
       <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-black select-none touch-pan-y">
@@ -193,13 +193,10 @@ export default function Home() {
                         <p className="mt-2 max-w-md text-sm font-light leading-relaxed text-ink-soft">{t.desc}</p>
                       </div>
                     </div>
-                    <Link
-                      href={t.href}
+                    <OpenWorkspaceButton
+                      tab={t.tab}
                       className="group/btn inline-flex shrink-0 items-center gap-2 rounded-full bg-[#2563EB] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
-                    >
-                      {t.cta}
-                      <span className="transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
-                    </Link>
+                    />
                   </div>
                 </div>
               </Reveal>
@@ -261,5 +258,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </WorkspaceProvider>
   );
 }
