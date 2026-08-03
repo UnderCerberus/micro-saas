@@ -73,11 +73,11 @@ export default function Home() {
   return (
     <div className="bg-base">
       {/* ===== 1. HERO ===== */}
-      <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-slate-950">
+      <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-slate-950 select-none touch-pan-y">
         <HeroGlowOrb />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-base" aria-hidden />
 
-        <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-28 text-center">
+        <div className="pointer-events-none relative mx-auto w-full max-w-6xl select-none px-6 pb-20 pt-28 text-center">
           <Reveal>
             <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-white sm:text-7xl">
               ブランドを
@@ -99,13 +99,13 @@ export default function Home() {
 
           <Reveal delay={200}>
             <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/brandkit" className="group inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-8 py-4 text-sm font-semibold text-white shadow-[0_12px_40px_-8px_rgba(37,99,235,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]">
+              <Link href="/brandkit" className="group pointer-events-auto inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-8 py-4 text-sm font-semibold text-white shadow-[0_12px_40px_-8px_rgba(37,99,235,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]">
                 Mikkoを無料で試す
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
               <Link
                 href="#features"
-                className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-slate-200 transition-colors duration-300 hover:border-white/50 hover:text-white"
+                className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-slate-200 transition-colors duration-300 hover:border-white/50 hover:text-white"
               >
                 機能を見る
               </Link>
