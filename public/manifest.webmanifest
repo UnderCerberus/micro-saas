@@ -1,0 +1,17 @@
+{
+  "name": "Mikko",
+  "short_name": "Mikko",
+  "description": "ブランド素材とAIコンテンツを無料で生成できるWebツールスイート",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f16",
+  "theme_color": "#4a4591",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
