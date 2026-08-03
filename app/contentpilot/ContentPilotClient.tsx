@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 
 type Mode = "blog" | "thread" | "catchcopy";
 
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 1;
+
+const STANDARD_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
+  "https://buy.stripe.com/test_8x2eVd8dr0vceF47oR6c000";
+const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 const modeOptions: { id: Mode; label: string; desc: string }[] = [
   { id: "blog", label: "ブログ記事", desc: "SEOに強い構成の記事" },
@@ -39,6 +44,7 @@ export default function ContentPilotClient() {
   const [error, setError] = useState("");
   const [usage, setUsage] = useState(getUsage);
   const [copied, setCopied] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const remaining = Math.max(FREE_LIMIT - usage, 0);
   const lengthLabel =
@@ -56,7 +62,8 @@ export default function ContentPilotClient() {
       return;
     }
     if (remaining <= 0) {
-      setError("無料回数の上限に達しました。Proプランへのアップグレードをご検討ください。");
+      setError("無料回数の上限に達しました。");
+      setShowUpgrade(true);
       return;
     }
     setLoading(true);
@@ -240,6 +247,65 @@ export default function ContentPilotClient() {
           )}
         </div>
       </div>
+
+      {showUpgrade && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowUpgrade(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl border border-line bg-surface p-6 shadow-2xl sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-black tracking-tight text-ink">
+              無料枠の上限に達しました
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+              今月のContentPilot無料枠（月{FREE_LIMIT}回）を使い切りました。アップグレードすると今すぐ生成を再開できます。
+            </p>
+
+            <a
+              href={STANDARD_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-5 block rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 transition hover:border-brand-dark"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#6366F1] px-3 py-0.5 text-[11px] font-bold text-white">
+                おすすめ・一番人気
+              </span>
+              <span className="mt-2 flex items-center justify-between">
+                <span>
+                  <span className="block text-lg font-black text-ink">Standard</span>
+                  <span className="block text-xs text-ink-soft">ContentPilot 月7回</span>
+                </span>
+                <span className="block text-xl font-black text-brand">¥500/月</span>
+              </span>
+              <span className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#2563EB]/30 transition group-hover:-translate-y-0.5 group-hover:bg-[#1d4ed8]">
+                今すぐアップグレード
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </span>
+            </a>
+
+            <a
+              href={PRO_LINK || "#"}
+              target={PRO_LINK ? "_blank" : undefined}
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
+            >
+              <span className="font-bold text-ink">Pro（全機能無制限）</span>
+              <span className="font-bold text-ink-soft">{PRO_LINK ? "¥900/月" : "準備中"}</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setShowUpgrade(false)}
+              className="mt-4 w-full rounded-xl px-5 py-2.5 text-sm font-bold text-ink-soft transition hover:bg-white hover:text-ink"
+            >
+              あとで検討する
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
