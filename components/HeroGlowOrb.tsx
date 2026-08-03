@@ -7,7 +7,7 @@ const SENSITIVITY = 0.0038;
 const ROT_TARGET_MAX_X = 0.7;
 const ROT_TARGET_MAX_Y = 1.4;
 const CAM_Z = 5.5;
-const M_SCALE = 2.0;
+const M_SCALE = 2.8;
 const SCATTER = 1.7;
 const CORE_DENSITY = 6000;
 
@@ -20,15 +20,15 @@ const PALETTES = [
 
 const M_SEGMENTS: [number[], number[]][] = [
   [[-0.85, 0.85], [-0.85, -0.6]],
-  [[-0.85, -0.6], [0, 0.1]],
-  [[0, 0.1], [0.85, -0.6]],
+  [[-0.85, -0.6], [0, 0.5]],
+  [[0, 0.5], [0.85, -0.6]],
   [[0.85, -0.6], [0.85, 0.85]],
 ];
 
 const M_VERTICES: [number, number][] = [
   [-0.85, 0.85],
   [-0.85, -0.6],
-  [0, 0.1],
+  [0, 0.5],
   [0.85, -0.6],
   [0.85, 0.85],
 ];
@@ -66,8 +66,8 @@ void main() {
   float mm = clamp(uMix + (aSeed - 0.5) * 0.25, 0.0, 1.0);
   vec3 pos = mix(aBase, aM, mm);
   float emphasize = 0.25 + 0.85 * mm;
-  float shrink = 1.0 - uFocus * 0.32;
-  float shrinkZ = 1.0 - uFocus * 0.22;
+  float shrink = 1.0 - uFocus * 0.45;
+  float shrinkZ = 1.0 - uFocus * 0.3;
   float w1 = 0.014 * sin(uTime * 0.8 + aSeed * 47.0);
   float w2 = 0.014 * cos(uTime * 0.7 + aSeed * 31.0);
   float w3 = 0.014 * sin(uTime * 0.6 + aSeed * 23.0);
@@ -84,7 +84,7 @@ void main() {
 
   p.z -= uCamZ;
   gl_Position = uProj * vec4(p, 1.0);
-  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright * emphasize) * (1.0 - uFocus * 0.3));
+  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright * emphasize) * (1.0 - uFocus * 0.35));
   vSeed = aSeed;
   vBright = aBright * emphasize;
 }

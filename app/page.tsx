@@ -85,12 +85,10 @@ export default function Home() {
 
         <div className="pointer-events-none relative z-10 mx-auto w-full max-w-6xl select-none px-6 pb-20 pt-28 text-center">
           <Reveal>
-            <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-white sm:text-7xl">
+            <h1 className="mx-auto max-w-4xl font-display text-5xl font-semibold leading-[1.15] tracking-tight text-white sm:text-7xl">
               ブランドを
               <br />
-              <span className="bg-gradient-to-r from-[#93C5FD] via-[#C7D2FE] to-[#93C5FD] bg-clip-text font-semibold text-transparent">
-                ゼロコスト
-              </span>
+              ゼロコスト
               で、
               <br />
               武器に変える。
