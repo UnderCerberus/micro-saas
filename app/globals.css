@@ -3,8 +3,18 @@
 @theme inline {
   --font-sans: var(--font-noto), "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-display: var(--font-space), "Noto Sans JP", sans-serif;
-  --color-background: #09090b;
-  --color-foreground: #f4f4f5;
+
+  --color-base: #fafaf9;
+  --color-surface: #ffffff;
+  --color-ink: #2b2b2b;
+  --color-ink-soft: #6e6e6e;
+  --color-line: #e7e5e4;
+
+  --color-brand: #4a4591;
+  --color-brand-dark: #3a3670;
+  --color-brand-deep: #2f2c59;
+  --color-brand-soft: #eef0fa;
+  --color-brand-2: #7c6fc0;
 }
 
 html {
@@ -12,13 +22,14 @@ html {
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--color-base);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(217, 70, 239, 0.35);
+  background: rgba(122, 111, 192, 0.35);
   color: #fff;
 }
 

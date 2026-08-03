@@ -38,14 +38,14 @@ async function copyText(text: string) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold text-zinc-400">{label}</span>
+      <span className="text-xs font-semibold text-ink-soft">{label}</span>
       {children}
     </label>
   );
 }
 
 const inputCls =
-  "w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none transition focus:border-violet-500";
+  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-brand";
 
 function BrandPreview({
   render,
@@ -73,7 +73,7 @@ function BrandPreview({
       ref={ref}
       width={width}
       height={height}
-      className="w-full rounded-lg border border-white/10 bg-zinc-900"
+      className="w-full rounded-lg border border-line bg-zinc-100"
       style={{ aspectRatio: `${width} / ${height}` }}
     />
   );
@@ -155,13 +155,13 @@ export default function BrandKitClient() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">BrandKit</h1>
-        <p className="mt-2 text-zinc-400">
+        <p className="mt-2 text-ink-soft">
           ブランド素材を数秒で生成。すべてブラウザ内で完結するため無料・無制限・サーバー費用ゼロです。
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="space-y-5 rounded-2xl border border-line bg-surface p-6">
           <div className="flex flex-wrap gap-2">
             {tools.map((t) => (
               <button
@@ -169,8 +169,8 @@ export default function BrandKitClient() {
                 onClick={() => setTool(t.id)}
                 className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
                   tool === t.id
-                    ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white"
-                    : "border border-white/10 bg-zinc-900 text-zinc-300 hover:bg-white/10"
+                    ? "bg-brand text-white shadow-sm"
+                    : "border border-line bg-white text-ink-soft hover:border-brand/30 hover:text-brand"
                 }`}
               >
                 {t.label}
@@ -192,7 +192,7 @@ export default function BrandKitClient() {
                   value={qrSize}
                   onChange={(e) => setQrSize(Number(e.target.value))}
                 />
-                <span className="text-xs text-zinc-500">{qrSize}px</span>
+                <span className="text-xs text-ink-soft">{qrSize}px</span>
               </Field>
             </div>
           ) : (
@@ -219,9 +219,9 @@ export default function BrandKitClient() {
                     type="color"
                     value={fromColor}
                     onChange={(e) => setFromColor(e.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded border border-white/10 bg-zinc-900"
+                    className="h-9 w-12 cursor-pointer rounded border border-line bg-white"
                   />
-                  <span className="text-xs text-zinc-400">{fromColor}</span>
+                  <span className="text-xs text-ink-soft">{fromColor}</span>
                 </div>
               </Field>
               <Field label="グラデーション終了色">
@@ -230,9 +230,9 @@ export default function BrandKitClient() {
                     type="color"
                     value={toColor}
                     onChange={(e) => setToColor(e.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded border border-white/10 bg-zinc-900"
+                    className="h-9 w-12 cursor-pointer rounded border border-line bg-white"
                   />
-                  <span className="text-xs text-zinc-400">{toColor}</span>
+                  <span className="text-xs text-ink-soft">{toColor}</span>
                 </div>
               </Field>
               <Field label="アクセント色">
@@ -241,9 +241,9 @@ export default function BrandKitClient() {
                     type="color"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="h-9 w-12 cursor-pointer rounded border border-white/10 bg-zinc-900"
+                    className="h-9 w-12 cursor-pointer rounded border border-line bg-white"
                   />
-                  <span className="text-xs text-zinc-400">{accentColor}</span>
+                  <span className="text-xs text-ink-soft">{accentColor}</span>
                 </div>
               </Field>
               {tool === "og" && (
@@ -256,8 +256,8 @@ export default function BrandKitClient() {
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="mb-4 text-sm font-bold text-zinc-400">プレビュー</h2>
+          <div className="rounded-2xl border border-line bg-surface p-6">
+            <h2 className="mb-4 text-sm font-bold text-ink-soft">プレビュー</h2>
             {tool === "qr" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={qrData} alt="QRコードプレビュー" className="mx-auto max-h-72" />
@@ -274,22 +274,22 @@ export default function BrandKitClient() {
 
           <button
             onClick={handleDownload}
-            className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-5 py-3 font-bold text-white shadow-lg shadow-violet-500/20 transition hover:brightness-110"
+            className="w-full rounded-xl bg-brand px-5 py-3 font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark"
           >
             PNGをダウンロード
           </button>
 
-          <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-5">
+          <div className="rounded-2xl border border-line bg-zinc-50 p-5">
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-zinc-300">利用コード（コピー用）</h3>
-              <button onClick={handleCopy} className="text-xs font-bold text-fuchsia-300 hover:underline">
+              <h3 className="text-sm font-bold text-ink">利用コード（コピー用）</h3>
+              <button onClick={handleCopy} className="text-xs font-bold text-brand hover:underline">
                 {copied ? "コピーしました✓" : "コピー"}
               </button>
             </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-black/40 p-3 text-xs leading-relaxed text-emerald-300">
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-line bg-base p-3 text-xs leading-relaxed text-emerald-700">
               {snippet}
             </pre>
-            <p className="mt-3 text-xs text-zinc-500">
+            <p className="mt-3 text-xs text-ink-soft">
               ※ OG画像・ファビコンは、PNGを保存後、ホスティング（Vercel等）にアップロードしてURLを公開してください。
             </p>
           </div>

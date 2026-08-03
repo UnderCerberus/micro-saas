@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${noto.variable} ${space.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
+      <body className="min-h-full flex flex-col bg-base text-ink">
         <ScrollGlow />
         <Header />
         <main className="relative z-10 flex-1">{children}</main>

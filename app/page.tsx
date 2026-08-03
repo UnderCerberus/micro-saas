@@ -68,15 +68,18 @@ const stats = [
   { value: "24/7", label: "自動で稼働" },
 ];
 
+const btnPrimary =
+  "group inline-flex items-center gap-3 rounded-full bg-brand px-8 py-4 text-sm font-semibold text-white shadow-[0_10px_36px_-8px_rgba(74,69,145,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-[0_14px_44px_-8px_rgba(74,69,145,0.6)]";
+
 export default function Home() {
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-base">
       {/* ===== 1. HERO ===== */}
-      <section className="relative flex min-h-[92svh] flex-col justify-center">
+      <section className="relative flex min-h-[90svh] flex-col justify-center">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute left-1/2 top-[42%] h-[520px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-violet-600/35 via-fuchsia-500/20 to-cyan-500/25 blur-[140px]" />
+          <div className="absolute left-1/2 top-[40%] h-[480px] w-[780px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/10 blur-[130px]" />
           <svg
-            className="absolute left-1/2 top-1/2 h-[120vmin] w-[120vmin] -translate-x-1/2 -translate-y-1/2 text-white/[0.04]"
+            className="absolute left-1/2 top-1/2 h-[120vmin] w-[120vmin] -translate-x-1/2 -translate-y-1/2 text-ink/5"
             viewBox="0 0 800 800"
             fill="none"
           >
@@ -86,19 +89,12 @@ export default function Home() {
           </svg>
         </div>
 
-        <div className="relative mx-auto w-full max-w-6xl px-6 pb-16 pt-28 text-center">
+        <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-28 text-center">
           <Reveal>
-            <p className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-light tracking-widest text-zinc-300">
-              <span className="h-1 w-1 rounded-full bg-fuchsia-400" />
-              無料で使えるWebツールスイート
-            </p>
-          </Reveal>
-
-          <Reveal delay={90}>
-            <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight sm:text-7xl">
+            <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-ink sm:text-7xl">
               ブランドを
               <br />
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text font-semibold text-transparent">
+              <span className="bg-gradient-to-r from-brand via-brand-2 to-brand bg-clip-text font-semibold text-transparent">
                 ゼロコスト
               </span>
               で、
@@ -107,42 +103,36 @@ export default function Home() {
             </h1>
           </Reveal>
 
-          <Reveal delay={180}>
-            <p className="mx-auto mt-8 max-w-xl text-sm font-light leading-relaxed text-zinc-400 sm:text-base">
+          <Reveal delay={120}>
+            <p className="mx-auto mt-8 max-w-xl text-sm font-light leading-relaxed text-ink-soft sm:text-base">
               OG画像・ロゴ・AI記事生成。サーバー費用0円で、あなたのサービスを誰よりも早く形に。
             </p>
           </Reveal>
 
-          <Reveal delay={260}>
-            <div className="mt-12 flex justify-center">
-              <Link
-                href="/brandkit"
-                className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-sm font-semibold text-zinc-950 shadow-[0_8px_40px_rgba(255,255,255,0.25)] transition-all duration-300 hover:shadow-[0_8px_60px_rgba(217,70,239,0.4)]"
-              >
+          <Reveal delay={200}>
+            <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link href="/brandkit" className={btnPrimary}>
                 無料で使い始める
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
-            </div>
-          </Reveal>
-
-          <Reveal delay={360}>
-            <div className="mt-20 flex flex-col items-center gap-2 text-zinc-500">
-              <span className="text-[10px] font-light tracking-[0.3em]">SCROLL</span>
-              <span className="flex h-10 w-6 items-start justify-center rounded-full border border-zinc-600 p-1.5">
-                <span className="h-2 w-1 animate-bounce rounded-full bg-zinc-400" />
-              </span>
+              <Link
+                href="#features"
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-7 py-4 text-sm font-medium text-ink-soft transition-colors duration-300 hover:border-brand/30 hover:text-brand"
+              >
+                機能を見る
+              </Link>
             </div>
           </Reveal>
         </div>
       </section>
 
       {/* ===== 2. FEATURES ===== */}
-      <section className="relative py-28 sm:py-36">
+      <section id="features" className="relative py-24 sm:py-32">
         <div className="mx-auto max-w-6xl px-6">
           <Reveal>
             <div className="mb-16 text-center">
-              <p className="mb-4 text-xs font-light tracking-[0.35em] text-fuchsia-300">FEATURES</p>
-              <h2 className="font-display text-3xl font-medium tracking-tight sm:text-5xl">
+              <p className="mb-4 text-xs font-light tracking-[0.35em] text-brand">FEATURES</p>
+              <h2 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-5xl">
                 必要なものを、すべてここに。
               </h2>
             </div>
@@ -151,13 +141,13 @@ export default function Home() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f, i) => (
               <Reveal key={f.title} delay={i * 90}>
-                <div className="group relative h-full rounded-3xl border border-white/10 bg-white/[0.03] p-8 transition-all duration-500 hover:-translate-y-2 hover:border-fuchsia-400/40 hover:bg-white/[0.06] hover:shadow-[0_20px_60px_-15px_rgba(217,70,239,0.35)]">
-                  <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/[0.06] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-fuchsia-200 transition-colors duration-500 group-hover:text-fuchsia-300">
+                <div className="group relative h-full rounded-3xl border border-line bg-surface p-8 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand/25 hover:shadow-[0_20px_50px_-18px_rgba(74,69,145,0.25)]">
+                  <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-soft to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-brand/10 bg-brand-soft text-brand">
                     <Icon className="h-6 w-6">{f.icon}</Icon>
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{f.title}</h3>
-                  <p className="mt-2 text-sm font-light leading-relaxed text-zinc-400">{f.desc}</p>
+                  <h3 className="text-lg font-semibold text-ink">{f.title}</h3>
+                  <p className="mt-2 text-sm font-light leading-relaxed text-ink-soft">{f.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -166,11 +156,11 @@ export default function Home() {
       </section>
 
       {/* ===== 3. TRUST ===== */}
-      <section className="relative py-24">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/5 to-cyan-500/10 py-32" aria-hidden />
+      <section className="relative py-20">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-brand/5 via-brand-soft to-brand/5 py-28" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-6">
           <Reveal>
-            <p className="mb-14 text-center text-xs font-light tracking-[0.35em] text-zinc-400">
+            <p className="mb-14 text-center text-xs font-light tracking-[0.35em] text-brand">
               WHY MICROKIT
             </p>
           </Reveal>
@@ -178,10 +168,10 @@ export default function Home() {
             {stats.map((s, i) => (
               <Reveal key={s.label} delay={i * 90}>
                 <div className="text-center">
-                  <div className="font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
+                  <div className="font-display text-5xl font-semibold tracking-tight text-brand sm:text-6xl">
                     {s.value}
                   </div>
-                  <div className="mt-3 text-sm font-light text-zinc-400">{s.label}</div>
+                  <div className="mt-3 text-sm font-light text-ink-soft">{s.label}</div>
                 </div>
               </Reveal>
             ))}
@@ -190,12 +180,12 @@ export default function Home() {
       </section>
 
       {/* ===== 4. VISUAL / MOCKUP ===== */}
-      <section className="relative py-28 sm:py-36">
+      <section className="relative py-24 sm:py-32">
         <div className="mx-auto max-w-5xl px-6">
           <Reveal>
             <div className="mb-16 text-center">
-              <p className="mb-4 text-xs font-light tracking-[0.35em] text-fuchsia-300">PRODUCT</p>
-              <h2 className="font-display text-3xl font-medium tracking-tight sm:text-5xl">
+              <p className="mb-4 text-xs font-light tracking-[0.35em] text-brand">PRODUCT</p>
+              <h2 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-5xl">
                 数秒で、ここまで仕上がる。
               </h2>
             </div>
@@ -203,26 +193,26 @@ export default function Home() {
 
           <Reveal delay={120}>
             <div className="group relative" style={{ perspective: "1600px" }}>
-              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-tr from-violet-600/30 via-fuchsia-500/20 to-cyan-500/25 opacity-60 blur-3xl transition-opacity duration-700 group-hover:opacity-90" aria-hidden />
-              <div className="relative rounded-3xl border border-white/10 bg-zinc-900/90 shadow-2xl transition-transform duration-700 ease-out group-hover:-translate-y-2 group-hover:[transform:rotateX(4deg)] [transform:rotateX(6deg)_rotateZ(-4deg)]">
-                <div className="flex items-center gap-2 border-b border-white/10 px-5 py-3.5">
-                  <span className="h-3 w-3 rounded-full bg-zinc-600" />
-                  <span className="h-3 w-3 rounded-full bg-zinc-600" />
-                  <span className="h-3 w-3 rounded-full bg-zinc-600" />
-                  <span className="ml-4 hidden flex-1 rounded-md bg-white/5 px-3 py-1 text-[11px] font-light text-zinc-500 sm:block">
+              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-tr from-brand/15 via-brand-soft to-brand-2/15 opacity-60 blur-3xl transition-opacity duration-700 group-hover:opacity-90" aria-hidden />
+              <div className="relative rounded-3xl border border-line bg-surface shadow-2xl shadow-brand/10 transition-transform duration-700 ease-out group-hover:-translate-y-2 group-hover:[transform:rotateX(4deg)] [transform:rotateX(6deg)_rotateZ(-4deg)]">
+                <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
+                  <span className="h-3 w-3 rounded-full bg-ink/15" />
+                  <span className="h-3 w-3 rounded-full bg-ink/15" />
+                  <span className="h-3 w-3 rounded-full bg-ink/15" />
+                  <span className="ml-4 hidden flex-1 rounded-md bg-base px-3 py-1 text-[11px] font-light text-ink-soft sm:block">
                     microkit.app/brandkit
                   </span>
                 </div>
                 <div className="flex">
-                  <div className="hidden w-44 space-y-3 border-r border-white/10 p-5 sm:block">
-                    <div className="h-7 rounded-lg bg-white/10" />
-                    <div className="h-7 rounded-lg bg-white/5" />
-                    <div className="h-7 rounded-lg bg-white/5" />
-                    <div className="h-7 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-70" />
+                  <div className="hidden w-44 space-y-3 border-r border-line p-5 sm:block">
+                    <div className="h-7 rounded-lg bg-ink/5" />
+                    <div className="h-7 rounded-lg bg-ink/5" />
+                    <div className="h-7 rounded-lg bg-ink/5" />
+                    <div className="h-7 rounded-lg bg-gradient-to-r from-brand to-brand-2 opacity-80" />
                   </div>
                   <div className="flex-1 p-5 sm:p-7">
-                    <div className="flex aspect-[1200/630] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-cyan-400 px-8 text-center text-white shadow-inner">
-                      <div className="text-sm font-light tracking-widest">MICROKIT</div>
+                    <div className="flex aspect-[1200/630] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-brand via-brand-deep to-brand-2 px-8 text-center text-white shadow-inner">
+                      <div className="text-sm font-light tracking-widest text-white/80">MICROKIT</div>
                       <div className="mt-3 font-display text-xl font-semibold sm:text-2xl">
                         ブランド素材を数秒で生成する
                       </div>
@@ -239,14 +229,17 @@ export default function Home() {
       </section>
 
       {/* ===== 5. CTA ===== */}
-      <section className="relative rounded-t-[3rem] bg-white py-28 text-zinc-950 sm:py-40">
-        <div className="mx-auto max-w-4xl px-6 text-center">
+      <section className="relative rounded-t-[3rem] bg-brand py-24 text-white sm:py-32">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[3rem]" aria-hidden>
+          <div className="absolute -top-24 left-1/2 h-72 w-[60%] -translate-x-1/2 rounded-full bg-white/10 blur-[100px]" />
+        </div>
+        <div className="relative mx-auto max-w-4xl px-6 text-center">
           <Reveal>
-            <p className="mb-6 text-xs font-light tracking-[0.35em] text-zinc-500">START NOW</p>
+            <p className="mb-6 text-xs font-light tracking-[0.35em] text-white/70">START NOW</p>
             <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">
               今すぐ、無料で始める。
             </h2>
-            <p className="mx-auto mt-6 max-w-md text-sm font-light text-zinc-500">
+            <p className="mx-auto mt-6 max-w-md text-sm font-light text-white/80">
               登録も費用も不要。あなたのブランドを、今日から。
             </p>
           </Reveal>
@@ -254,7 +247,7 @@ export default function Home() {
             <div className="mt-12 flex justify-center">
               <Link
                 href="/contentpilot"
-                className="group inline-flex items-center gap-3 rounded-full bg-zinc-950 px-10 py-5 text-sm font-semibold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                className="group inline-flex items-center gap-3 rounded-full bg-white px-10 py-5 text-sm font-semibold text-brand shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
               >
                 無料で使い始める
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>

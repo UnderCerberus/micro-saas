@@ -20,7 +20,7 @@ const toneOptions = [
 ];
 
 const inputCls =
-  "w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none transition focus:border-sky-500";
+  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-brand";
 
 function getUsage(): number {
   if (typeof window === "undefined") return 0;
@@ -104,16 +104,16 @@ export default function ContentPilotClient() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">ContentPilot</h1>
-        <p className="mt-2 text-zinc-400">
+        <p className="mt-2 text-ink-soft">
           テーマを入力するだけで、ブログ記事・Xスレッド・キャッチコピーをAIが自動生成します。
         </p>
-        <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-xs text-zinc-300">
-          無料枠：残り <span className="font-bold text-sky-300">{remaining}</span> 回 / {FREE_LIMIT}回
+        <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1 text-xs text-ink-soft">
+          無料枠：残り <span className="font-bold text-brand">{remaining}</span> 回 / {FREE_LIMIT}回
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="space-y-5 rounded-2xl border border-line bg-surface p-6">
           <div className="flex flex-wrap gap-2">
             {modeOptions.map((m) => (
               <button
@@ -124,8 +124,8 @@ export default function ContentPilotClient() {
                 }}
                 className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
                   mode === m.id
-                    ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-white"
-                    : "border border-white/10 bg-zinc-900 text-zinc-300 hover:bg-white/10"
+                    ? "bg-brand text-white shadow-sm"
+                    : "border border-line bg-white text-ink-soft hover:border-brand/30 hover:text-brand"
                 }`}
               >
                 {m.label}
@@ -135,7 +135,7 @@ export default function ContentPilotClient() {
           </div>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-zinc-400">
+            <span className="text-xs font-semibold text-ink-soft">
               {mode === "blog"
                 ? "記事のテーマ"
                 : mode === "thread"
@@ -157,7 +157,7 @@ export default function ContentPilotClient() {
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-zinc-400">追加キーワード・要件（任意）</span>
+            <span className="text-xs font-semibold text-ink-soft">追加キーワード・要件（任意）</span>
             <input
               className={inputCls}
               placeholder="例：時短, 体験談, 失敗しない方法"
@@ -168,7 +168,7 @@ export default function ContentPilotClient() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-zinc-400">トーン</span>
+              <span className="text-xs font-semibold text-ink-soft">トーン</span>
               <select className={inputCls} value={tone} onChange={(e) => setTone(e.target.value)}>
                 {toneOptions.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -178,7 +178,7 @@ export default function ContentPilotClient() {
               </select>
             </label>
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-zinc-400">{lengthLabel}</span>
+              <span className="text-xs font-semibold text-ink-soft">{lengthLabel}</span>
               <select
                 className={inputCls}
                 value={length}
@@ -194,7 +194,7 @@ export default function ContentPilotClient() {
           </div>
 
           {error && (
-            <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+            <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
               {error}
             </p>
           )}
@@ -202,39 +202,39 @@ export default function ContentPilotClient() {
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className="w-full rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-5 py-3 font-bold text-white shadow-lg shadow-sky-500/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-brand px-5 py-3 font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "生成中..." : "AIで生成する"}
           </button>
         </div>
 
-        <div className="flex flex-col rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="flex flex-col rounded-2xl border border-line bg-surface p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-zinc-400">生成結果</h2>
+            <h2 className="text-sm font-bold text-ink-soft">生成結果</h2>
             <div className="flex items-center gap-2">
               {isDemo && (
-                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-xs text-amber-300">
+                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-xs text-amber-600">
                   デモ出力
                 </span>
               )}
               {output && (
                 <button
                   onClick={handleCopy}
-                  className="rounded-lg border border-white/10 bg-zinc-900 px-3 py-1 text-xs font-bold text-zinc-300 transition hover:bg-white/10"
+                  className="rounded-lg border border-line bg-white px-3 py-1 text-xs font-bold text-ink-soft transition hover:border-brand/30 hover:text-brand"
                 >
                   {copied ? "コピーしました✓" : "コピー"}
                 </button>
               )}
             </div>
           </div>
-          <pre className="min-h-[320px] flex-1 whitespace-pre-wrap rounded-lg border border-white/10 bg-black/40 p-4 text-sm leading-relaxed text-zinc-200">
+          <pre className="min-h-[320px] flex-1 whitespace-pre-wrap rounded-lg border border-line bg-base p-4 text-sm leading-relaxed text-ink">
             {output ||
               (loading
                 ? "生成しています..."
                 : "生成結果がここに表示されます。テーマを入力して「AIで生成する」を押してください。")}
           </pre>
           {output && (
-            <p className="mt-3 text-right text-xs text-zinc-500">
+            <p className="mt-3 text-right text-xs text-ink-soft">
               約 {output.length} 文字
             </p>
           )}

@@ -8,20 +8,20 @@ const nav = [
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-line bg-surface/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight text-white">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-black">
+        <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight text-ink">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-2 text-sm font-black text-white">
             M
           </span>
           <span className="text-lg">MicroKit</span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm text-zinc-400">
+        <nav className="flex items-center gap-1 text-sm text-ink-soft">
           {nav.map((n) => (
             <Link
               key={n.href}
               href={n.href}
-              className="rounded-md px-3 py-1.5 transition hover:bg-white/10 hover:text-white"
+              className="rounded-md px-3 py-1.5 transition hover:bg-brand-soft hover:text-brand"
             >
               {n.label}
             </Link>
