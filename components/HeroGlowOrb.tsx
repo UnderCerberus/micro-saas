@@ -8,8 +8,8 @@ const ROT_TARGET_MAX_X = 0.7;
 const ROT_TARGET_MAX_Y = 1.4;
 const CAM_Z = 5.5;
 const M_SCALE = 2.0;
-const SCATTER = 2.6;
-const CORE_DENSITY = 4300;
+const SCATTER = 1.7;
+const CORE_DENSITY = 6000;
 
 const PALETTES = [
   [0.0, 0.82, 0.95],
@@ -23,6 +23,14 @@ const M_SEGMENTS: [number[], number[]][] = [
   [[-0.85, -0.6], [0, 0.1]],
   [[0, 0.1], [0.85, -0.6]],
   [[0.85, -0.6], [0.85, 0.85]],
+];
+
+const M_VERTICES: [number, number][] = [
+  [-0.85, 0.85],
+  [-0.85, -0.6],
+  [0, 0.1],
+  [0.85, -0.6],
+  [0.85, 0.85],
 ];
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -54,11 +62,12 @@ uniform float uCamZ;
 varying float vSeed;
 varying float vBright;
 void main() {
-  float mm = clamp(uMix + (aSeed - 0.5) * 0.4, 0.0, 1.0);
+  float mm = clamp(uMix + (aSeed - 0.5) * 0.25, 0.0, 1.0);
   vec3 pos = mix(aBase, aM, mm);
-  float w1 = 0.018 * sin(uTime * 0.8 + aSeed * 47.0);
-  float w2 = 0.018 * cos(uTime * 0.7 + aSeed * 31.0);
-  float w3 = 0.018 * sin(uTime * 0.6 + aSeed * 23.0);
+  float emphasize = 0.25 + 0.85 * mm;
+  float w1 = 0.014 * sin(uTime * 0.8 + aSeed * 47.0);
+  float w2 = 0.014 * cos(uTime * 0.7 + aSeed * 31.0);
+  float w3 = 0.014 * sin(uTime * 0.6 + aSeed * 23.0);
   pos += vec3(w1, w2, w3);
 
   float ry = uRotY + uLag * (aSeed - 0.5) * 2.2;
@@ -70,9 +79,9 @@ void main() {
 
   p.z -= uCamZ;
   gl_Position = uProj * vec4(p, 1.0);
-  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright));
+  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright * emphasize));
   vSeed = aSeed;
-  vBright = aBright;
+  vBright = aBright * emphasize;
 }
 `;
 
@@ -141,7 +150,7 @@ export default function HeroGlowOrb() {
 
     const parts: { mx: number; my: number; mz: number; sx: number; sy: number; sz: number; seed: number; bright: number; size: number }[] = [];
 
-    const thickness = 0.17;
+    const thickness = 0.09;
     for (const [a, b] of M_SEGMENTS) {
       const [ax, ay] = a;
       const [bx, by] = b;
@@ -153,38 +162,54 @@ export default function HeroGlowOrb() {
       const n = Math.round(len * CORE_DENSITY);
       for (let i = 0; i < n; i++) {
         const tt = Math.random();
-        const along = (Math.random() - 0.5) * 0.3;
+        const along = (Math.random() - 0.5) * 0.12;
         const perp = (Math.random() * 2 - 1) * thickness;
-        const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.7;
+        const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.8;
         parts.push({
           mx: (ax + dx * (tt + along) + nx * perp) * M_SCALE,
           my: (ay + dy * (tt + along) + ny * perp) * M_SCALE,
-          mz: (Math.random() - 0.5) * 1.2 * M_SCALE,
+          mz: (Math.random() - 0.5) * 0.8 * M_SCALE,
           sx: (Math.random() * 2 - 1) * SCATTER,
           sy: (Math.random() * 2 - 1) * SCATTER,
           sz: (Math.random() * 2 - 1) * SCATTER,
           seed: Math.random(),
-          bright: (0.4 + Math.random() * 0.6) * edge,
-          size: (0.7 + Math.random() * 1.6) * dpr,
+          bright: (0.5 + Math.random() * 0.5) * edge,
+          size: (0.8 + Math.random() * 1.6) * dpr,
         });
       }
     }
 
-    for (let i = 0; i < 3200; i++) {
+    for (const [vx, vy] of M_VERTICES) {
+      for (let i = 0; i < 260; i++) {
+        parts.push({
+          mx: (vx + (Math.random() - 0.5) * 0.1) * M_SCALE,
+          my: (vy + (Math.random() - 0.5) * 0.1) * M_SCALE,
+          mz: (Math.random() - 0.5) * 0.14 * M_SCALE,
+          sx: (Math.random() * 2 - 1) * SCATTER,
+          sy: (Math.random() * 2 - 1) * SCATTER,
+          sz: (Math.random() * 2 - 1) * SCATTER,
+          seed: Math.random(),
+          bright: 0.92 + Math.random() * 0.08,
+          size: (0.9 + Math.random() * 1.4) * dpr,
+        });
+      }
+    }
+
+    for (let i = 0; i < 1500; i++) {
       const ang = Math.random() * Math.PI * 2;
-      const r = Math.pow(Math.random(), 0.6) * SCATTER * 0.9;
+      const r = Math.pow(Math.random(), 0.6) * SCATTER * 0.85;
       const bx = Math.cos(ang) * r;
       const by = Math.sin(ang) * r * 0.8;
       const bz = (Math.random() - 0.5) * SCATTER;
       parts.push({
-        mx: bx * 0.5,
-        my: by * 0.5,
-        mz: bz * 0.5,
+        mx: bx * 0.55,
+        my: by * 0.55,
+        mz: bz * 0.55,
         sx: bx,
         sy: by,
         sz: bz,
         seed: Math.random(),
-        bright: Math.random() * 0.3,
+        bright: Math.random() * 0.28,
         size: (0.5 + Math.random() * 1.0) * dpr,
       });
     }
@@ -259,7 +284,7 @@ export default function HeroGlowOrb() {
     let rotTargetX = 0.1;
     let rotTargetY = 0.25;
     let lag = 0;
-    let mixCur = 0.22;
+    let mixCur = 0.55;
     let pulse = 1;
     let colorT = 0;
     let curPal = 0;
@@ -347,8 +372,10 @@ export default function HeroGlowOrb() {
       lag += (lagTarget - lag) * 0.1;
 
       const sy = window.scrollY;
-      const prog = clamp(sy / Math.max(1, height * 0.7) + 0.22, 0, 1);
-      mixCur += (prog - mixCur) * 0.06;
+      const raw = clamp(sy / Math.max(1, height * 0.5), 0, 1);
+      const eased = raw * raw * (3 - 2 * raw);
+      const prog = clamp(0.55 + 0.45 * eased, 0, 1);
+      mixCur += (prog - mixCur) * 0.1;
 
       pulse += (1 - pulse) * 0.08;
       if (pulse <= 1.02) pulse = 1;
