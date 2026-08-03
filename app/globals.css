@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --font-sans: var(--font-noto), "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
   --font-display: var(--font-space), "Noto Sans JP", sans-serif;
 
@@ -15,6 +15,23 @@
   --color-brand-deep: #2f2c59;
   --color-brand-soft: #eef0fa;
   --color-brand-2: #7c6fc0;
+}
+
+.workspace-dark {
+  --color-base: #09090b;
+  --color-surface: #17171b;
+  --color-ink: #f4f4f5;
+  --color-ink-soft: #a1a1aa;
+  --color-line: #2c2c33;
+  --color-brand-soft: rgba(124, 111, 192, 0.16);
+}
+
+.workspace-dark .bg-white {
+  background-color: var(--color-surface);
+}
+
+.workspace-dark ::selection {
+  background: rgba(217, 70, 239, 0.35);
 }
 
 html {
