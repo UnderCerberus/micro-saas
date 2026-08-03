@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import CheckoutButton from "@/components/CheckoutButton";
 
 export const metadata: Metadata = {
   title: "料金プラン｜Mikko",
   description: "Mikkoの料金プラン。基本無料で、Standardプランは月額¥500から。Stripeで即時決済できます。",
 };
-
-const STANDARD_LINK = process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK || "";
-const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 const freeFeatures = [
   "BrandKit（ダウンロード月2回）",
@@ -34,7 +33,7 @@ function PlanCard({
   desc,
   features,
   cta,
-  href,
+  plan,
   highlighted,
   badge,
   scale,
@@ -44,7 +43,7 @@ function PlanCard({
   desc: string;
   features: string[];
   cta: string;
-  href?: string;
+  plan?: "standard" | "pro";
   highlighted?: boolean;
   badge?: string;
   scale?: boolean;
@@ -78,11 +77,9 @@ function PlanCard({
           </li>
         ))}
       </ul>
-      {href ? (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+      {plan ? (
+        <CheckoutButton
+          plan={plan}
           className={`mt-6 rounded-xl px-5 py-3 text-center font-bold transition ${
             highlighted
               ? "bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/30 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
@@ -90,14 +87,14 @@ function PlanCard({
           }`}
         >
           {cta}
-        </a>
+        </CheckoutButton>
       ) : (
-        <button
-          disabled
-          className="mt-6 cursor-not-allowed rounded-xl border border-line bg-white px-5 py-3 text-center font-bold text-ink-soft/60"
+        <Link
+          href="/"
+          className="mt-6 block rounded-xl border border-line bg-white px-5 py-3 text-center font-bold text-ink-soft transition hover:border-brand/30 hover:text-brand"
         >
           {cta}
-        </button>
+        </Link>
       )}
     </div>
   );
@@ -120,15 +117,14 @@ export default function PricingPage() {
           desc="個人・お試し向け。いつでも無料で使い続けられます。"
           features={freeFeatures}
           cta="今すぐ無料で使う"
-          href="/"
         />
         <PlanCard
           name="Standard"
           price="¥500/月"
           desc="手軽に始めたい方に一番人気"
           features={standardFeatures}
-          cta={STANDARD_LINK ? "¥500で始める" : "Stripe連携準備中"}
-          href={STANDARD_LINK || undefined}
+          cta="¥500で始める"
+          plan="standard"
           highlighted
           scale
           badge="おすすめ・一番人気"
@@ -138,8 +134,8 @@ export default function PricingPage() {
           price="¥900/月"
           desc="ヘビーユーザー・事業者向け。上限なしで快適に。"
           features={proFeatures}
-          cta={PRO_LINK ? "¥900で始める" : "Stripe連携準備中"}
-          href={PRO_LINK || undefined}
+          cta="¥900で始める"
+          plan="pro"
         />
       </div>
 

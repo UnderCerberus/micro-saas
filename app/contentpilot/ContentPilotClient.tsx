@@ -1,21 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   anonymousId,
   getMonthlyUsage,
   incrementMonthlyUsage,
 } from "@/lib/usage";
+import type { Plan } from "@/lib/plan";
 
 type Mode = "blog" | "thread" | "catchcopy";
 
 const FREE_LIMIT = 1;
 const STORAGE_KEY = "cp_usage";
-
-const STANDARD_LINK =
-  process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
-  "https://buy.stripe.com/test_8x2eVd8dr0vceF47oR6c000";
-const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 const modeOptions: { id: Mode; label: string; desc: string }[] = [
   { id: "blog", label: "ブログ記事", desc: "SEOに強い構成の記事" },
@@ -50,8 +46,25 @@ export default function ContentPilotClient() {
   const [usage, setUsage] = useState(getUsage);
   const [copied, setCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [plan, setPlan] = useState<Plan>("free");
 
-  const remaining = Math.max(FREE_LIMIT - usage, 0);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/plan", {
+      headers: { "x-anon-id": anonymousId() },
+    })
+      .then((res) => res.json())
+      .then((data: { plan?: Plan }) => {
+        if (active && data.plan) setPlan(data.plan);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const paid = plan === "standard" || plan === "pro";
+  const remaining = paid ? Infinity : Math.max(FREE_LIMIT - usage, 0);
   const lengthLabel =
     mode === "blog" ? `想定文字数（${length}字）` : mode === "thread" ? `ツイート数（${length}本）` : `コピー個数（${length}個）`;
 
@@ -110,6 +123,24 @@ export default function ContentPilotClient() {
     }
   }
 
+  async function handleCheckout(plan: "standard" | "pro") {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, anonId: anonymousId() }),
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data?.error || "決済ページを開けませんでした。");
+      }
+    } catch {
+      setError("決済ページを開けませんでした。時間をおいてお試しください。");
+    }
+  }
+
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(output);
@@ -128,7 +159,15 @@ export default function ContentPilotClient() {
           テーマを入力するだけで、ブログ記事・Xスレッド・キャッチコピーをAIが自動生成します。
         </p>
         <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1 text-xs text-ink-soft">
-          無料枠：残り <span className="font-bold text-brand">{remaining}</span> 回 / {FREE_LIMIT}回
+          {paid ? (
+            <>
+              プラン：<span className="font-bold text-brand">{plan === "pro" ? "Pro（無制限）" : "Standard（月7回）"}</span>
+            </>
+          ) : (
+            <>
+              無料枠：残り <span className="font-bold text-brand">{remaining}</span> 回 / {FREE_LIMIT}回
+            </>
+          )}
         </p>
       </div>
 
@@ -277,11 +316,10 @@ export default function ContentPilotClient() {
               今月のContentPilot無料枠（月{FREE_LIMIT}回）を使い切りました。アップグレードすると今すぐ生成を再開できます。
             </p>
 
-            <a
-              href={STANDARD_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-5 block rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 transition hover:border-brand-dark"
+            <button
+              type="button"
+              onClick={() => handleCheckout("standard")}
+              className="group mt-5 block w-full rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 text-left transition hover:border-brand-dark"
             >
               <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#6366F1] px-3 py-0.5 text-[11px] font-bold text-white">
                 おすすめ・一番人気
@@ -297,17 +335,16 @@ export default function ContentPilotClient() {
                 今すぐアップグレード
                 <span className="transition-transform group-hover:translate-x-1">→</span>
               </span>
-            </a>
+            </button>
 
-            <a
-              href={PRO_LINK || "#"}
-              target={PRO_LINK ? "_blank" : undefined}
-              rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
+            <button
+              type="button"
+              onClick={() => handleCheckout("pro")}
+              className="mt-3 flex w-full items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
             >
               <span className="font-bold text-ink">Pro（全機能無制限）</span>
-              <span className="font-bold text-ink-soft">{PRO_LINK ? "¥900/月" : "準備中"}</span>
-            </a>
+              <span className="font-bold text-ink-soft">¥900/月</span>
+            </button>
 
             <button
               type="button"

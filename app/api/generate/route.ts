@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getUsage, incrementUsage, sanitizeAnonId } from "@/lib/limits";
+import { getPlan, isPaid } from "@/lib/plan";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -85,7 +86,11 @@ AI出力はそのまま使わず、必ず事実確認と加筆・修正を行い
 export async function POST(req: NextRequest) {
   try {
     const anonId = sanitizeAnonId(req.headers.get("x-anon-id"));
-    const current = anonId ? await getUsage("contentpilot", anonId) : null;
+    const plan = await getPlan(anonId);
+    const paid = isPaid(plan);
+
+    // 有料プランはサーバー側では上限なし（毎回カウントは記録する）
+    const current = !paid && anonId ? await getUsage("contentpilot", anonId) : null;
 
     if (current !== null && current >= CP_FREE_LIMIT) {
       return Response.json(

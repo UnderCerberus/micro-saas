@@ -3,17 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { renderOG, renderLogo, renderFavicon, canvasToDataURL, type BrandStyle } from "@/lib/brandCanvas";
-import { getMonthlyUsage, incrementMonthlyUsage } from "@/lib/usage";
+import { anonymousId, getMonthlyUsage, incrementMonthlyUsage } from "@/lib/usage";
+import type { Plan } from "@/lib/plan";
 
 type Tool = "og" | "logo" | "favicon" | "qr";
 
 const BK_FREE_LIMIT = 2;
 const STORAGE_KEY = "bk_downloads";
-
-const STANDARD_LINK =
-  process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK ||
-  "https://buy.stripe.com/test_8x2eVd8dr0vceF47oR6c000";
-const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 const tools: { id: Tool; label: string }[] = [
   { id: "og", label: "OG画像" },
@@ -105,9 +101,26 @@ export default function BrandKitClient() {
 
   const [downloads, setDownloads] = useState<number>(() => getMonthlyUsage(STORAGE_KEY));
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [plan, setPlan] = useState<Plan>("free");
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/plan", {
+      headers: { "x-anon-id": anonymousId() },
+    })
+      .then((res) => res.json())
+      .then((data: { plan?: Plan }) => {
+        if (active && data.plan) setPlan(data.plan);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const paid = plan === "standard" || plan === "pro";
   const remaining = Math.max(BK_FREE_LIMIT - downloads, 0);
-  const freeLocked = remaining <= 0;
+  const freeLocked = !paid && remaining <= 0;
 
   const style: BrandStyle = useMemo(
     () => ({
@@ -152,6 +165,26 @@ export default function BrandKitClient() {
     setDownloads(next);
   }, [tool, style, qrData, freeLocked]);
 
+  const [checkoutError, setCheckoutError] = useState("");
+
+  async function handleCheckout(plan: "standard" | "pro") {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, anonId: anonymousId() }),
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckoutError(data?.error || "決済ページを開けませんでした。");
+      }
+    } catch {
+      setCheckoutError("決済ページを開けませんでした。時間をおいてお試しください。");
+    }
+  }
+
   const snippet =
     tool === "og"
       ? [
@@ -191,9 +224,9 @@ export default function BrandKitClient() {
               return (
                 <button
                   key={t.id}
-                  onClick={() => (isQr ? setShowUpgrade(true) : setTool(t.id))}
+                  onClick={() => (isQr && !paid ? setShowUpgrade(true) : setTool(t.id))}
                   className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
-                    isQr
+                    isQr && !paid
                       ? "border border-dashed border-brand/40 bg-brand-soft/40 text-brand"
                       : active
                         ? "bg-brand text-white shadow-sm"
@@ -201,7 +234,7 @@ export default function BrandKitClient() {
                   }`}
                 >
                   {t.label}
-                  {isQr && <span className="ml-1.5 text-[10px] font-bold text-brand">PRO</span>}
+                  {isQr && !paid && <span className="ml-1.5 text-[10px] font-bold text-brand">PRO</span>}
                 </button>
               );
             })}
@@ -365,11 +398,16 @@ export default function BrandKitClient() {
               BrandKitの無料ダウンロード（月{BK_FREE_LIMIT}回）を使い切りました。アップグレードするとダウンロード無制限・QRコード生成をご利用いただけます。
             </p>
 
-            <a
-              href={STANDARD_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-5 block rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 transition hover:border-brand-dark"
+            {checkoutError && (
+              <p className="mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
+                {checkoutError}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => handleCheckout("standard")}
+              className="group mt-5 block w-full rounded-2xl border-2 border-brand bg-brand-soft/60 p-5 text-left transition hover:border-brand-dark"
             >
               <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#6366F1] px-3 py-0.5 text-[11px] font-bold text-white">
                 おすすめ・一番人気
@@ -385,17 +423,16 @@ export default function BrandKitClient() {
                 今すぐアップグレード
                 <span className="transition-transform group-hover:translate-x-1">→</span>
               </span>
-            </a>
+            </button>
 
-            <a
-              href={PRO_LINK || "#"}
-              target={PRO_LINK ? "_blank" : undefined}
-              rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
+            <button
+              type="button"
+              onClick={() => handleCheckout("pro")}
+              className="mt-3 flex w-full items-center justify-between rounded-xl border border-line bg-white px-5 py-3 text-sm transition hover:border-brand/30"
             >
               <span className="font-bold text-ink">Pro（全機能無制限）</span>
-              <span className="font-bold text-ink-soft">{PRO_LINK ? "¥900/月" : "準備中"}</span>
-            </a>
+              <span className="font-bold text-ink-soft">¥900/月</span>
+            </button>
 
             <button
               type="button"
