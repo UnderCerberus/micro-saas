@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
+import { Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScrollGlow from "@/components/ScrollGlow";
 
 const noto = Noto_Sans_JP({
   variable: "--font-noto",
   subsets: ["latin"],
-  weight: ["400", "500", "700", "800", "900"],
+  weight: ["300", "400", "500", "700", "800", "900"],
+});
+
+const space = Space_Grotesk({
+  variable: "--font-space",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -22,10 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${noto.variable} h-full antialiased`}>
+    <html lang="ja" className={`${noto.variable} ${space.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
+        <ScrollGlow />
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="relative z-10 flex-1">{children}</main>
         <Footer />
       </body>
     </html>
