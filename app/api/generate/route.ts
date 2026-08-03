@@ -16,7 +16,7 @@ interface GenRequest {
 const GENERATE_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}";
 const API_KEY = process.env.GEMINI_API_KEY || "";
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 
 function buildPrompt(r: GenRequest): string {
   const style = r.style || "丁寧で読みやすい";
