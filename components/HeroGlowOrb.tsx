@@ -10,11 +10,47 @@ type Particle = {
   sway: number;
   size: number;
   alpha: number;
+  tint: number;
 };
 
 type Ripple = { x: number; y: number; r: number; maxR: number; alpha: number };
 
 const DRAG_THRESHOLD = 8;
+const SENSITIVITY = 0.00028;
+const ROT_TARGET_MAX_X = 0.7;
+const ROT_TARGET_MAX_Y = 1.5;
+const COLOR_STEPS = 24;
+
+const KEY = [
+  { r: 59, g: 150, b: 246 },
+  { r: 139, g: 92, b: 246 },
+  { r: 16, g: 185, b: 129 },
+];
+
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function colorAt(u: number) {
+  const k = ((u % 1) + 1) % 1;
+  let a: { r: number; g: number; b: number };
+  let b: { r: number; g: number; b: number };
+  let t: number;
+  if (k < 0.4) {
+    a = KEY[0];
+    b = KEY[1];
+    t = k / 0.4;
+  } else {
+    a = KEY[1];
+    b = KEY[2];
+    t = (k - 0.4) / 0.6;
+  }
+  return {
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t),
+  };
+}
 
 const M_SEGMENTS: [number[], number[]][] = [
   [[-0.85, 0.85], [-0.85, -0.6]],
@@ -26,7 +62,7 @@ const M_SEGMENTS: [number[], number[]][] = [
 function genParticles(): Particle[] {
   const pts: Particle[] = [];
   const thickness = 0.17;
-  const density = 240;
+  const density = 200;
 
   for (const [a, b] of M_SEGMENTS) {
     const [ax, ay] = a;
@@ -38,18 +74,19 @@ function genParticles(): Particle[] {
     const ny = dx / len;
     const n = Math.round(len * density);
     for (let i = 0; i < n; i++) {
-      const t = Math.random();
+      const tt = Math.random();
       const along = (Math.random() - 0.5) * 0.3;
       const perp = (Math.random() * 2 - 1) * thickness;
-      const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.6;
+      const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.7;
       pts.push({
-        x: ax + dx * (t + along) + nx * perp,
-        y: ay + dy * (t + along) + ny * perp,
+        x: ax + dx * (tt + along) + nx * perp,
+        y: ay + dy * (tt + along) + ny * perp,
         z: (Math.random() - 0.5) * 1.1,
         phase: Math.random() * Math.PI * 2,
         sway: 0.5 + Math.random() * 0.5,
-        size: (2.2 + Math.random() * 3.2) * edge,
-        alpha: (0.55 + Math.random() * 0.45) * edge,
+        size: (2.0 + Math.random() * 5.4) * edge,
+        alpha: (0.5 + Math.random() * 0.5) * edge,
+        tint: (Math.random() - 0.5) * 5,
       });
     }
   }
@@ -63,8 +100,9 @@ function genParticles(): Particle[] {
       z: (Math.random() - 0.5) * 1.4,
       phase: Math.random() * Math.PI * 2,
       sway: 0.3 + Math.random() * 0.4,
-      size: 1.2 + Math.random() * 1.8,
-      alpha: 0.18 + Math.random() * 0.22,
+      size: 1.3 + Math.random() * 2.6,
+      alpha: 0.16 + Math.random() * 0.2,
+      tint: (Math.random() - 0.5) * 8,
     });
   }
 
@@ -80,18 +118,22 @@ export default function HeroGlowOrb() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const sprite = document.createElement("canvas");
-    sprite.width = 32;
-    sprite.height = 32;
-    const sctx = sprite.getContext("2d");
-    if (sctx) {
-      const g = sctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-      g.addColorStop(0, "rgba(255,255,255,1)");
-      g.addColorStop(0.25, "rgba(224,236,255,0.95)");
-      g.addColorStop(0.6, "rgba(129,140,248,0.45)");
-      g.addColorStop(1, "rgba(99,102,241,0)");
-      sctx.fillStyle = g;
-      sctx.fillRect(0, 0, 32, 32);
+    const sprites: HTMLCanvasElement[] = [];
+    for (let i = 0; i < COLOR_STEPS; i++) {
+      const c = document.createElement("canvas");
+      c.width = 32;
+      c.height = 32;
+      const s = c.getContext("2d");
+      if (!s) continue;
+      const col = colorAt(i / COLOR_STEPS);
+      const g2 = s.createRadialGradient(16, 16, 0, 16, 16, 16);
+      g2.addColorStop(0, "rgba(255,255,255,1)");
+      g2.addColorStop(0.25, `rgba(${col.r},${col.g},${col.b},0.95)`);
+      g2.addColorStop(0.6, `rgba(${col.r},${col.g},${col.b},0.4)`);
+      g2.addColorStop(1, `rgba(${col.r},${col.g},${col.b},0)`);
+      s.fillStyle = g2;
+      s.fillRect(0, 0, 32, 32);
+      sprites.push(c);
     }
 
     const particles = genParticles();
@@ -107,12 +149,13 @@ export default function HeroGlowOrb() {
 
     let rotX = 0.16;
     let rotY = 0.28;
-    let rotVelX = 0;
-    let rotVelY = 0;
+    let rotTargetX = 0.16;
+    let rotTargetY = 0.28;
     let scaleX = 1;
     let scaleY = 1;
     let pulse = 1;
     let speed = 0;
+    let color = 0.8;
     let dragging = false;
     let downActive = false;
     const downPos = { x: 0, y: 0 };
@@ -161,8 +204,8 @@ export default function HeroGlowOrb() {
       if (dragging) {
         const mvx = e.clientX - prevClient.x;
         const mvy = e.clientY - prevClient.y;
-        rotVelY += mvx * 0.005;
-        rotVelX += mvy * 0.004;
+        rotTargetY = clamp(rotTargetY + mvx * SENSITIVITY, -ROT_TARGET_MAX_Y, ROT_TARGET_MAX_Y);
+        rotTargetX = clamp(rotTargetX + mvy * SENSITIVITY, -ROT_TARGET_MAX_X, ROT_TARGET_MAX_X);
         prevClient.x = e.clientX;
         prevClient.y = e.clientY;
       }
@@ -172,9 +215,9 @@ export default function HeroGlowOrb() {
       if (dragging) {
         dragging = false;
       } else if (downActive && !isInteractive(e)) {
-        pulse = 1.35;
+        pulse = 1.3;
         const rect = canvas.getBoundingClientRect();
-        ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 6, maxR: Math.max(width, height) * 0.5, alpha: 0.5 });
+        ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 6, maxR: Math.max(width, height) * 0.5, alpha: 0.45 });
         if (ripples.length > 6) ripples.shift();
       }
       downActive = false;
@@ -201,27 +244,27 @@ export default function HeroGlowOrb() {
       const cy = height / 2;
 
       if (dragging) {
-        rotX += rotVelX;
-        rotY += rotVelY;
-        rotVelX *= 0.93;
-        rotVelY *= 0.93;
-        speed += (Math.min(Math.hypot(rotVelX, rotVelY) * 3, 1.6) - speed) * 0.12;
-        scaleX += (1.1 - scaleX) * 0.12;
-        scaleY += (0.92 - scaleY) * 0.12;
+        rotY += (rotTargetY - rotY) * 0.11;
+        rotX += (rotTargetX - rotX) * 0.11;
+        speed = Math.min(1, Math.abs(rotTargetY - rotY) * 1.4);
+        scaleX += (1.06 - scaleX) * 0.1;
+        scaleY += (0.95 - scaleY) * 0.1;
       } else {
+        const baseY = 0.28 + Math.sin(t * 0.3) * 0.12;
+        const baseX = 0.16 + Math.cos(t * 0.24) * 0.1;
+        rotTargetY += (baseY - rotTargetY) * 0.035;
+        rotTargetX += (baseX - rotTargetX) * 0.035;
+        rotY += (rotTargetY - rotY) * 0.1;
+        rotX += (rotTargetX - rotX) * 0.1;
         speed *= 0.94;
-        rotVelX *= 0.94;
-        rotVelY *= 0.94;
         scaleX += (1 - scaleX) * 0.1;
         scaleY += (1 - scaleY) * 0.1;
-        const baseX = 0.16 + Math.cos(t * 0.26) * 0.1;
-        const baseY = 0.28 + Math.sin(t * 0.32) * 0.14;
-        rotX += (baseX - rotX) * 0.045;
-        rotY += (baseY - rotY) * 0.045;
       }
 
       pulse += (1 - pulse) * 0.1;
       if (pulse <= 1.02) pulse = 1;
+      color = (((t * 0.045 + rotY * 0.05) % 1) + 1) % 1;
+      const cur = colorAt(color);
 
       ctx.clearRect(0, 0, width, height);
       ctx.globalCompositeOperation = "lighter";
@@ -234,22 +277,22 @@ export default function HeroGlowOrb() {
           ripples.splice(i, 1);
           continue;
         }
-        ctx.strokeStyle = `rgba(147, 197, 253, ${rp.alpha})`;
+        ctx.strokeStyle = `rgba(${cur.r},${cur.g},${cur.b},${rp.alpha})`;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      const scale = Math.min(width, height) * 0.34 * pulse;
+      const scale = Math.min(width, height) * 0.5 * pulse;
       const focal = Math.max(width, height) * 1.4;
       const swayAmp = scale * 0.03;
       const cosY = Math.cos(rotY);
       const sinY = Math.sin(rotY);
       const cosX = Math.cos(rotX);
       const sinX = Math.sin(rotX);
-      const trailAlpha = dragging ? Math.min(0.35, speed * 0.2) : 0;
-      const attractR = Math.min(160, Math.max(width, height) * 0.22);
+      const trailAlpha = dragging ? Math.min(0.24, speed * 0.18) : 0;
+      const attractR = Math.min(170, Math.max(width, height) * 0.24);
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -275,20 +318,22 @@ export default function HeroGlowOrb() {
           const d = Math.hypot(sx - cursorLocal.x, sy - cursorLocal.y);
           if (d < attractR) {
             const f = 1 - d / attractR;
-            const pull = f * f * 16;
+            const pull = f * f * 14;
             const ang = Math.atan2(sy - cursorLocal.y, sx - cursorLocal.x);
             sx += Math.cos(ang) * pull;
             sy += Math.sin(ang) * pull;
-            glow = 1 + f * 1.4;
+            glow = 1 + f * 1.1;
           }
         }
 
+        const frame = (((Math.floor(color * COLOR_STEPS) + Math.round(p.tint)) % COLOR_STEPS) + COLOR_STEPS) % COLOR_STEPS;
+        const spr = sprites[frame] ?? sprites[0];
         const size = p.size * persp * Math.sqrt(glow);
         const alpha = Math.min(1, p.alpha * glow * (0.55 + 0.5 * persp));
 
         if (trailAlpha > 0.02 && i < prevSX.length) {
-          ctx.strokeStyle = `rgba(147, 197, 253, ${trailAlpha * alpha})`;
-          ctx.lineWidth = Math.max(0.5, size * 0.35);
+          ctx.strokeStyle = `rgba(${cur.r},${cur.g},${cur.b},${trailAlpha * alpha})`;
+          ctx.lineWidth = Math.max(0.5, size * 0.3);
           ctx.beginPath();
           ctx.moveTo(prevSX[i], prevSY[i]);
           ctx.lineTo(sx, sy);
@@ -296,9 +341,9 @@ export default function HeroGlowOrb() {
         }
 
         ctx.globalAlpha = alpha * 0.35;
-        ctx.drawImage(sprite, sx - size * 1.6, sy - size * 1.6, size * 3.2, size * 3.2);
+        ctx.drawImage(spr, sx - size * 1.5, sy - size * 1.5, size * 3, size * 3);
         ctx.globalAlpha = alpha;
-        ctx.drawImage(sprite, sx - size, sy - size, size * 2, size * 2);
+        ctx.drawImage(spr, sx - size, sy - size, size * 2, size * 2);
         prevSX[i] = sx;
         prevSY[i] = sy;
       }
