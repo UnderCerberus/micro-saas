@@ -56,6 +56,7 @@ uniform float uRotX;
 uniform float uRotY;
 uniform float uLag;
 uniform float uMix;
+uniform float uFocus;
 uniform float uTime;
 uniform float uPulse;
 uniform float uCamZ;
@@ -65,10 +66,14 @@ void main() {
   float mm = clamp(uMix + (aSeed - 0.5) * 0.25, 0.0, 1.0);
   vec3 pos = mix(aBase, aM, mm);
   float emphasize = 0.25 + 0.85 * mm;
+  float shrink = 1.0 - uFocus * 0.32;
+  float shrinkZ = 1.0 - uFocus * 0.22;
   float w1 = 0.014 * sin(uTime * 0.8 + aSeed * 47.0);
   float w2 = 0.014 * cos(uTime * 0.7 + aSeed * 31.0);
   float w3 = 0.014 * sin(uTime * 0.6 + aSeed * 23.0);
   pos += vec3(w1, w2, w3);
+  pos.xy *= shrink;
+  pos.z *= shrinkZ;
 
   float ry = uRotY + uLag * (aSeed - 0.5) * 2.2;
   float rx = uRotX + uLag * (aSeed - 0.5) * 1.6;
@@ -79,7 +84,7 @@ void main() {
 
   p.z -= uCamZ;
   gl_Position = uProj * vec4(p, 1.0);
-  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright * emphasize));
+  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright * emphasize) * (1.0 - uFocus * 0.3));
   vSeed = aSeed;
   vBright = aBright * emphasize;
 }
@@ -244,6 +249,7 @@ export default function HeroGlowOrb() {
     const uRotY = gl.getUniformLocation(program, "uRotY");
     const uLag = gl.getUniformLocation(program, "uLag");
     const uMix = gl.getUniformLocation(program, "uMix");
+    const uFocus = gl.getUniformLocation(program, "uFocus");
     const uTime = gl.getUniformLocation(program, "uTime");
     const uPulse = gl.getUniformLocation(program, "uPulse");
     const uCamZ = gl.getUniformLocation(program, "uCamZ");
@@ -284,7 +290,8 @@ export default function HeroGlowOrb() {
     let rotTargetX = 0.1;
     let rotTargetY = 0.25;
     let lag = 0;
-    let mixCur = 0.55;
+    const mixCur = 1.0;
+    let focusCur = 0;
     let pulse = 1;
     let colorT = 0;
     let curPal = 0;
@@ -374,8 +381,7 @@ export default function HeroGlowOrb() {
       const sy = window.scrollY;
       const raw = clamp(sy / Math.max(1, height * 0.5), 0, 1);
       const eased = raw * raw * (3 - 2 * raw);
-      const prog = clamp(0.55 + 0.45 * eased, 0, 1);
-      mixCur += (prog - mixCur) * 0.1;
+      focusCur += (eased - focusCur) * 0.1;
 
       pulse += (1 - pulse) * 0.08;
       if (pulse <= 1.02) pulse = 1;
@@ -394,6 +400,7 @@ export default function HeroGlowOrb() {
       if (uRotY) gl.uniform1f(uRotY, rotY);
       if (uLag) gl.uniform1f(uLag, lag);
       if (uMix) gl.uniform1f(uMix, mixCur);
+      if (uFocus) gl.uniform1f(uFocus, focusCur);
       if (uPulse) gl.uniform1f(uPulse, pulse);
       if (uCamZ) gl.uniform1f(uCamZ, CAM_Z);
       if (uColA) gl.uniform3f(uColA, PALETTES[curPal][0], PALETTES[curPal][1], PALETTES[curPal][2]);

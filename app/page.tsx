@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import HeroGlowOrb from "@/components/HeroGlowOrb";
+import HeroWipe from "@/components/HeroWipe";
 
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -75,8 +76,14 @@ export default function Home() {
       {/* ===== 1. HERO ===== */}
       <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-black select-none touch-pan-y">
         <HeroGlowOrb />
+        <HeroWipe />
 
-        <div className="pointer-events-none relative mx-auto w-full max-w-6xl select-none px-6 pb-20 pt-28 text-center">
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[250px] bg-gradient-to-b from-transparent to-base"
+          aria-hidden
+        />
+
+        <div className="pointer-events-none relative z-10 mx-auto w-full max-w-6xl select-none px-6 pb-20 pt-28 text-center">
           <Reveal>
             <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-white sm:text-7xl">
               ブランドを
