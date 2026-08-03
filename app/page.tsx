@@ -70,6 +70,34 @@ const stats = [
   { value: "24/7", label: "自動で稼働" },
 ];
 
+const tools = [
+  {
+    title: "BrandKit",
+    desc: "ロゴ・OG画像・ファビコン・QRコードを数秒で生成。ブラウザ内でブランド素材を無制限に作成できます。",
+    href: "/brandkit",
+    cta: "BrandKitを試す",
+    icon: (
+      <>
+        <path d="M12 2 2 7l10 5 10-5-10-5z" />
+        <path d="M2 12l10 5 10-5" />
+        <path d="M2 17l10 5 10-5" />
+      </>
+    ),
+  },
+  {
+    title: "ContentPilot",
+    desc: "ブログ記事・Xスレッド・キャッチコピーをAIが自動生成。日本語最適化で質の高いコンテンツを即座に。",
+    href: "/contentpilot",
+    cta: "ContentPilotを試す",
+    icon: (
+      <>
+        <path d="M12 3l1.8 4.8L18.6 9.6l-4.8 1.8L12 16.2l-1.8-4.8L5.4 9.6l4.8-1.8L12 3z" />
+        <path d="M19 14l.7 1.8L21.5 16.5l-1.8.7L19 19l-.7-1.8-1.8-.7 1.8-.7L19 14z" />
+      </>
+    ),
+  },
+];
+
 export default function Home() {
   return (
     <div className="bg-base">
@@ -147,7 +175,40 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 3. TRUST ===== */}
+      {/* ===== 3. TOOLS ===== */}
+      <section className="relative pb-24 sm:pb-32">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="space-y-6">
+            {tools.map((t, i) => (
+              <Reveal key={t.title} delay={i * 90}>
+                <div className="group relative overflow-hidden rounded-[2rem] border border-line bg-surface p-8 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_24px_60px_-18px_rgba(74,69,145,0.3)] sm:p-10">
+                  <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-soft opacity-70 blur-3xl transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
+                  <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                    <div className="flex items-start gap-5">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-brand/10 bg-brand-soft text-brand">
+                        <Icon className="h-7 w-7">{t.icon}</Icon>
+                      </div>
+                      <div>
+                        <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">{t.title}</h3>
+                        <p className="mt-2 max-w-md text-sm font-light leading-relaxed text-ink-soft">{t.desc}</p>
+                      </div>
+                    </div>
+                    <Link
+                      href={t.href}
+                      className="group/btn inline-flex shrink-0 items-center gap-2 rounded-full bg-[#2563EB] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
+                    >
+                      {t.cta}
+                      <span className="transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
+                    </Link>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== 4. TRUST ===== */}
       <section className="relative py-20">
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-brand/5 via-brand-soft to-brand/5 py-28" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-6">
@@ -168,55 +229,6 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ===== 4. VISUAL / MOCKUP ===== */}
-      <section className="relative py-24 sm:py-32">
-        <div className="mx-auto max-w-5xl px-6">
-          <Reveal>
-            <div className="mb-16 text-center">
-              <p className="mb-4 text-xs font-light tracking-[0.35em] text-brand">PRODUCT</p>
-              <h2 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-5xl">
-                数秒で、ここまで仕上がる。
-              </h2>
-            </div>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <div className="group relative" style={{ perspective: "1600px" }}>
-              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-tr from-brand/15 via-brand-soft to-brand-2/15 opacity-60 blur-3xl transition-opacity duration-700 group-hover:opacity-90" aria-hidden />
-              <div className="relative rounded-3xl border border-line bg-surface shadow-2xl shadow-brand/10 transition-transform duration-700 ease-out group-hover:-translate-y-2 group-hover:[transform:rotateX(4deg)] [transform:rotateX(6deg)_rotateZ(-4deg)]">
-                <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
-                  <span className="h-3 w-3 rounded-full bg-ink/15" />
-                  <span className="h-3 w-3 rounded-full bg-ink/15" />
-                  <span className="h-3 w-3 rounded-full bg-ink/15" />
-                  <span className="ml-4 hidden flex-1 rounded-md bg-base px-3 py-1 text-[11px] font-light text-ink-soft sm:block">
-                    mikko.app/brandkit
-                  </span>
-                </div>
-                <div className="flex">
-                  <div className="hidden w-44 space-y-3 border-r border-line p-5 sm:block">
-                    <div className="h-7 rounded-lg bg-ink/5" />
-                    <div className="h-7 rounded-lg bg-ink/5" />
-                    <div className="h-7 rounded-lg bg-ink/5" />
-                    <div className="h-7 rounded-lg bg-gradient-to-r from-brand to-brand-2 opacity-80" />
-                  </div>
-                  <div className="flex-1 p-5 sm:p-7">
-                    <div className="flex aspect-[1200/630] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-brand via-brand-deep to-brand-2 px-8 text-center text-white shadow-inner">
-                      <div className="text-sm font-light tracking-widest text-white/80">MIKKO</div>
-                      <div className="mt-3 font-display text-xl font-semibold sm:text-2xl">
-                        ブランド素材を数秒で生成する
-                      </div>
-                      <div className="mt-2 text-xs font-light text-white/85">
-                        OG画像・ロゴ・QRコードを無料で
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Reveal>
         </div>
       </section>
 
