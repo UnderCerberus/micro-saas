@@ -122,18 +122,12 @@ export default function Home() {
             </h1>
           </Reveal>
 
-          <Reveal delay={120}>
-            <p className="mx-auto mt-8 max-w-xl text-sm font-light leading-relaxed text-slate-300 sm:text-base">
-              OG画像・ロゴ・AI記事生成。サーバー費用0円で、あなたのサービスを誰よりも早く形に。
-            </p>
-          </Reveal>
-
           <Reveal delay={200}>
             <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/brandkit" className="group pointer-events-auto inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-8 py-4 text-sm font-semibold text-white shadow-[0_12px_40px_-8px_rgba(37,99,235,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]">
-                Mikkoを無料で試す
-                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-              </Link>
+              <OpenWorkspaceButton
+                tab="brandkit"
+                className="group/btn pointer-events-auto inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-8 py-4 text-sm font-semibold text-white shadow-[0_12px_40px_-8px_rgba(37,99,235,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
+              />
               <Link
                 href="#features"
                 className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-slate-200 transition-colors duration-300 hover:border-white/50 hover:text-white"

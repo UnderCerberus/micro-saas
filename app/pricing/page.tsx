@@ -9,10 +9,10 @@ const STANDARD_LINK = process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK || "";
 const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 const freeFeatures = [
-  "BrandKit（ダウンロード・QRコード月2回）",
+  "BrandKit（ダウンロード月2回）",
   "ContentPilot 月1回",
   "商用利用OK",
-  "生成ファイルのダウンロード",
+  "QRコードは有料プラン限定",
 ];
 
 const standardFeatures = [

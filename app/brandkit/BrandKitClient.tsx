@@ -186,19 +186,26 @@ export default function BrandKitClient() {
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-5 rounded-2xl border border-line bg-surface p-6">
           <div className="flex flex-wrap gap-2">
-            {tools.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTool(t.id)}
-                className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
-                  tool === t.id
-                    ? "bg-brand text-white shadow-sm"
-                    : "border border-line bg-white text-ink-soft hover:border-brand/30 hover:text-brand"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+            {tools.map((t) => {
+              const isQr = t.id === "qr";
+              const active = tool === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => (isQr ? setShowUpgrade(true) : setTool(t.id))}
+                  className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+                    isQr
+                      ? "border border-dashed border-brand/40 bg-brand-soft/40 text-brand"
+                      : active
+                        ? "bg-brand text-white shadow-sm"
+                        : "border border-line bg-white text-ink-soft hover:border-brand/30 hover:text-brand"
+                  }`}
+                >
+                  {t.label}
+                  {isQr && <span className="ml-1.5 text-[10px] font-bold text-brand">PRO</span>}
+                </button>
+              );
+            })}
           </div>
 
           {tool === "qr" ? (
@@ -356,7 +363,7 @@ export default function BrandKitClient() {
               無料枠の上限に達しました
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              BrandKitの無料ダウンロード（月{BK_FREE_LIMIT}回）を使い切りました。アップグレードするとダウンロード・QRコード生成を無制限にご利用いただけます。
+              BrandKitの無料ダウンロード（月{BK_FREE_LIMIT}回）を使い切りました。アップグレードするとダウンロード無制限・QRコード生成をご利用いただけます。
             </p>
 
             <a
