@@ -73,9 +73,8 @@ export default function Home() {
   return (
     <div className="bg-base">
       {/* ===== 1. HERO ===== */}
-      <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-slate-950 select-none touch-pan-y">
+      <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-black select-none touch-pan-y">
         <HeroGlowOrb />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-base" aria-hidden />
 
         <div className="pointer-events-none relative mx-auto w-full max-w-6xl select-none px-6 pb-20 pt-28 text-center">
           <Reveal>

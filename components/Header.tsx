@@ -7,7 +7,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.5);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -17,9 +17,9 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-colors duration-300 ${
+      className={`sticky top-0 z-50 transition-all duration-500 ${
         dark
-          ? "border-b border-white/10 bg-slate-900/80 backdrop-blur"
+          ? "border-b border-white/10 bg-black/80 backdrop-blur"
           : "border-b border-line bg-white/80 backdrop-blur"
       }`}
     >

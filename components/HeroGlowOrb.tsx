@@ -2,55 +2,21 @@
 
 import { useEffect, useRef } from "react";
 
-type Particle = {
-  x: number;
-  y: number;
-  z: number;
-  phase: number;
-  sway: number;
-  size: number;
-  alpha: number;
-  tint: number;
-};
-
-type Ripple = { x: number; y: number; r: number; maxR: number; alpha: number };
-
 const DRAG_THRESHOLD = 8;
-const SENSITIVITY = 0.00028;
+const SENSITIVITY = 0.0038;
 const ROT_TARGET_MAX_X = 0.7;
-const ROT_TARGET_MAX_Y = 1.5;
-const COLOR_STEPS = 24;
+const ROT_TARGET_MAX_Y = 1.4;
+const CAM_Z = 5.5;
+const M_SCALE = 2.0;
+const SCATTER = 2.6;
+const CORE_DENSITY = 4300;
 
-const KEY = [
-  { r: 59, g: 150, b: 246 },
-  { r: 139, g: 92, b: 246 },
-  { r: 16, g: 185, b: 129 },
+const PALETTES = [
+  [0.0, 0.82, 0.95],
+  [0.08, 0.92, 0.5],
+  [0.95, 0.28, 0.82],
+  [0.99, 0.74, 0.25],
 ];
-
-function clamp(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v));
-}
-
-function colorAt(u: number) {
-  const k = ((u % 1) + 1) % 1;
-  let a: { r: number; g: number; b: number };
-  let b: { r: number; g: number; b: number };
-  let t: number;
-  if (k < 0.4) {
-    a = KEY[0];
-    b = KEY[1];
-    t = k / 0.4;
-  } else {
-    a = KEY[1];
-    b = KEY[2];
-    t = (k - 0.4) / 0.6;
-  }
-  return {
-    r: Math.round(a.r + (b.r - a.r) * t),
-    g: Math.round(a.g + (b.g - a.g) * t),
-    b: Math.round(a.b + (b.b - a.b) * t),
-  };
-}
 
 const M_SEGMENTS: [number[], number[]][] = [
   [[-0.85, 0.85], [-0.85, -0.6]],
@@ -59,54 +25,87 @@ const M_SEGMENTS: [number[], number[]][] = [
   [[0.85, -0.6], [0.85, 0.85]],
 ];
 
-function genParticles(): Particle[] {
-  const pts: Particle[] = [];
-  const thickness = 0.17;
-  const density = 200;
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-  for (const [a, b] of M_SEGMENTS) {
-    const [ax, ay] = a;
-    const [bx, by] = b;
-    const dx = bx - ax;
-    const dy = by - ay;
-    const len = Math.hypot(dx, dy);
-    const nx = -dy / len;
-    const ny = dx / len;
-    const n = Math.round(len * density);
-    for (let i = 0; i < n; i++) {
-      const tt = Math.random();
-      const along = (Math.random() - 0.5) * 0.3;
-      const perp = (Math.random() * 2 - 1) * thickness;
-      const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.7;
-      pts.push({
-        x: ax + dx * (tt + along) + nx * perp,
-        y: ay + dy * (tt + along) + ny * perp,
-        z: (Math.random() - 0.5) * 1.1,
-        phase: Math.random() * Math.PI * 2,
-        sway: 0.5 + Math.random() * 0.5,
-        size: (2.0 + Math.random() * 5.4) * edge,
-        alpha: (0.5 + Math.random() * 0.5) * edge,
-        tint: (Math.random() - 0.5) * 5,
-      });
-    }
+function perspective(fov: number, aspect: number, near: number, far: number): Float32Array {
+  const f = 1 / Math.tan(fov / 2);
+  return new Float32Array([
+    f / aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far + near) / (near - far), -1,
+    0, 0, (2 * far * near) / (near - far), 0,
+  ]);
+}
+
+const VERT = `
+attribute vec3 aBase;
+attribute vec3 aM;
+attribute float aSeed;
+attribute float aBright;
+attribute float aSize;
+uniform mat4 uProj;
+uniform float uRotX;
+uniform float uRotY;
+uniform float uLag;
+uniform float uMix;
+uniform float uTime;
+uniform float uPulse;
+uniform float uCamZ;
+varying float vSeed;
+varying float vBright;
+void main() {
+  float mm = clamp(uMix + (aSeed - 0.5) * 0.4, 0.0, 1.0);
+  vec3 pos = mix(aBase, aM, mm);
+  float w1 = 0.018 * sin(uTime * 0.8 + aSeed * 47.0);
+  float w2 = 0.018 * cos(uTime * 0.7 + aSeed * 31.0);
+  float w3 = 0.018 * sin(uTime * 0.6 + aSeed * 23.0);
+  pos += vec3(w1, w2, w3);
+
+  float ry = uRotY + uLag * (aSeed - 0.5) * 2.2;
+  float rx = uRotX + uLag * (aSeed - 0.5) * 1.6;
+  float sy = sin(ry); float cy = cos(ry);
+  float sx = sin(rx); float cx = cos(rx);
+  vec3 p = vec3(pos.x * cy - pos.z * sy, pos.y, pos.x * sy + pos.z * cy);
+  p = vec3(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
+
+  p.z -= uCamZ;
+  gl_Position = uProj * vec4(p, 1.0);
+  gl_PointSize = max(1.0, aSize * uPulse * (0.7 + 0.6 * aBright));
+  vSeed = aSeed;
+  vBright = aBright;
+}
+`;
+
+const FRAG = `
+precision mediump float;
+uniform vec3 uColA;
+uniform vec3 uColB;
+uniform float uMixCol;
+varying float vSeed;
+varying float vBright;
+void main() {
+  vec2 c = gl_PointCoord - vec2(0.5);
+  float d = length(c);
+  if (d > 0.5) discard;
+  float alpha = smoothstep(0.5, 0.06, d);
+  vec3 col = mix(uColA, uColB, uMixCol);
+  col *= 0.6 + 0.75 * vSeed;
+  col = mix(vec3(1.0), col, 0.5 + 0.5 * vBright);
+  gl_FragColor = vec4(col, alpha * (0.3 + 0.7 * vBright));
+}
+`;
+
+function compileShader(gl: WebGLRenderingContext, type: number, src: string): WebGLShader | null {
+  const sh = gl.createShader(type);
+  if (!sh) return null;
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(sh));
+    gl.deleteShader(sh);
+    return null;
   }
-
-  for (let i = 0; i < 140; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const r = Math.pow(Math.random(), 0.6) * 1.7;
-    pts.push({
-      x: Math.cos(ang) * r,
-      y: Math.sin(ang) * r * 0.8,
-      z: (Math.random() - 0.5) * 1.4,
-      phase: Math.random() * Math.PI * 2,
-      sway: 0.3 + Math.random() * 0.4,
-      size: 1.3 + Math.random() * 2.6,
-      alpha: 0.16 + Math.random() * 0.2,
-      tint: (Math.random() - 0.5) * 8,
-    });
-  }
-
-  return pts;
+  return sh;
 }
 
 export default function HeroGlowOrb() {
@@ -115,65 +114,163 @@ export default function HeroGlowOrb() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      premultipliedAlpha: false,
+      powerPreference: "high-performance",
+    });
+    if (!gl) return;
 
-    const sprites: HTMLCanvasElement[] = [];
-    for (let i = 0; i < COLOR_STEPS; i++) {
-      const c = document.createElement("canvas");
-      c.width = 32;
-      c.height = 32;
-      const s = c.getContext("2d");
-      if (!s) continue;
-      const col = colorAt(i / COLOR_STEPS);
-      const g2 = s.createRadialGradient(16, 16, 0, 16, 16, 16);
-      g2.addColorStop(0, "rgba(255,255,255,1)");
-      g2.addColorStop(0.25, `rgba(${col.r},${col.g},${col.b},0.95)`);
-      g2.addColorStop(0.6, `rgba(${col.r},${col.g},${col.b},0.4)`);
-      g2.addColorStop(1, `rgba(${col.r},${col.g},${col.b},0)`);
-      s.fillStyle = g2;
-      s.fillRect(0, 0, 32, 32);
-      sprites.push(c);
+    const vs = compileShader(gl, gl.VERTEX_SHADER, VERT);
+    const fs = compileShader(gl, gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) return;
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const parts: { mx: number; my: number; mz: number; sx: number; sy: number; sz: number; seed: number; bright: number; size: number }[] = [];
+
+    const thickness = 0.17;
+    for (const [a, b] of M_SEGMENTS) {
+      const [ax, ay] = a;
+      const [bx, by] = b;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len = Math.hypot(dx, dy);
+      const nx = -dy / len;
+      const ny = dx / len;
+      const n = Math.round(len * CORE_DENSITY);
+      for (let i = 0; i < n; i++) {
+        const tt = Math.random();
+        const along = (Math.random() - 0.5) * 0.3;
+        const perp = (Math.random() * 2 - 1) * thickness;
+        const edge = 1 + Math.min(1, Math.abs(perp) / thickness) * 0.7;
+        parts.push({
+          mx: (ax + dx * (tt + along) + nx * perp) * M_SCALE,
+          my: (ay + dy * (tt + along) + ny * perp) * M_SCALE,
+          mz: (Math.random() - 0.5) * 1.2 * M_SCALE,
+          sx: (Math.random() * 2 - 1) * SCATTER,
+          sy: (Math.random() * 2 - 1) * SCATTER,
+          sz: (Math.random() * 2 - 1) * SCATTER,
+          seed: Math.random(),
+          bright: (0.4 + Math.random() * 0.6) * edge,
+          size: (0.7 + Math.random() * 1.6) * dpr,
+        });
+      }
     }
 
-    const particles = genParticles();
-    const prevSX = new Float32Array(particles.length);
-    const prevSY = new Float32Array(particles.length);
+    for (let i = 0; i < 3200; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const r = Math.pow(Math.random(), 0.6) * SCATTER * 0.9;
+      const bx = Math.cos(ang) * r;
+      const by = Math.sin(ang) * r * 0.8;
+      const bz = (Math.random() - 0.5) * SCATTER;
+      parts.push({
+        mx: bx * 0.5,
+        my: by * 0.5,
+        mz: bz * 0.5,
+        sx: bx,
+        sy: by,
+        sz: bz,
+        seed: Math.random(),
+        bright: Math.random() * 0.3,
+        size: (0.5 + Math.random() * 1.0) * dpr,
+      });
+    }
+
+    const count = parts.length;
+    const data = new Float32Array(count * 9);
+    parts.forEach((p, i) => {
+      const o = i * 9;
+      data[o + 0] = p.sx;
+      data[o + 1] = p.sy;
+      data[o + 2] = p.sz;
+      data[o + 3] = p.mx;
+      data[o + 4] = p.my;
+      data[o + 5] = p.mz;
+      data[o + 6] = p.seed;
+      data[o + 7] = p.bright;
+      data[o + 8] = p.size;
+    });
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+
+    const stride = 9 * 4;
+    const locBase = gl.getAttribLocation(program, "aBase");
+    const locM = gl.getAttribLocation(program, "aM");
+    const locSeed = gl.getAttribLocation(program, "aSeed");
+    const locBright = gl.getAttribLocation(program, "aBright");
+    const locSize = gl.getAttribLocation(program, "aSize");
+    const uProj = gl.getUniformLocation(program, "uProj");
+    const uRotX = gl.getUniformLocation(program, "uRotX");
+    const uRotY = gl.getUniformLocation(program, "uRotY");
+    const uLag = gl.getUniformLocation(program, "uLag");
+    const uMix = gl.getUniformLocation(program, "uMix");
+    const uTime = gl.getUniformLocation(program, "uTime");
+    const uPulse = gl.getUniformLocation(program, "uPulse");
+    const uCamZ = gl.getUniformLocation(program, "uCamZ");
+    const uColA = gl.getUniformLocation(program, "uColA");
+    const uColB = gl.getUniformLocation(program, "uColB");
+    const uMixCol = gl.getUniformLocation(program, "uMixCol");
+
+    gl.enableVertexAttribArray(locBase);
+    gl.vertexAttribPointer(locBase, 3, gl.FLOAT, false, stride, 0);
+    gl.enableVertexAttribArray(locM);
+    gl.vertexAttribPointer(locM, 3, gl.FLOAT, false, stride, 12);
+    gl.enableVertexAttribArray(locSeed);
+    gl.vertexAttribPointer(locSeed, 1, gl.FLOAT, false, stride, 24);
+    gl.enableVertexAttribArray(locBright);
+    gl.vertexAttribPointer(locBright, 1, gl.FLOAT, false, stride, 28);
+    gl.enableVertexAttribArray(locSize);
+    gl.vertexAttribPointer(locSize, 1, gl.FLOAT, false, stride, 32);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
 
     let width = 0;
     let height = 0;
-    let dpr = 1;
-    let raf = 0;
-    let t = 0;
-    let last = performance.now();
-
-    let rotX = 0.16;
-    let rotY = 0.28;
-    let rotTargetX = 0.16;
-    let rotTargetY = 0.28;
-    let scaleX = 1;
-    let scaleY = 1;
-    let pulse = 1;
-    let speed = 0;
-    let color = 0.8;
-    let dragging = false;
-    let downActive = false;
-    const downPos = { x: 0, y: 0 };
-    const prevClient = { x: 0, y: 0 };
-    const cursorLocal = { x: 0, y: 0 };
-    const ripples: Ripple[] = [];
-
     const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      if (uProj) gl.uniformMatrix4fv(uProj, false, perspective((48 * Math.PI) / 180, width / Math.max(1, height), 1, 20));
     };
     resize();
     window.addEventListener("resize", resize);
+
+    let rotX = 0.1;
+    let rotY = 0.25;
+    let rotTargetX = 0.1;
+    let rotTargetY = 0.25;
+    let lag = 0;
+    let mixCur = 0.22;
+    let pulse = 1;
+    let colorT = 0;
+    let curPal = 0;
+    let nextPal = 1;
+    let dragging = false;
+    let downActive = false;
+    const downPos = { x: 0, y: 0 };
+    const prevClient = { x: 0, y: 0 };
+    let t = 0;
+    let raf = 0;
+    let last = performance.now();
 
     const isInteractive = (e: PointerEvent) => {
       const target = e.target as Element | null;
@@ -191,16 +288,11 @@ export default function HeroGlowOrb() {
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      cursorLocal.x = e.clientX - rect.left;
-      cursorLocal.y = e.clientY - rect.top;
       if (!downActive) return;
       if (isInteractive(e)) return;
       const dx = e.clientX - downPos.x;
       const dy = e.clientY - downPos.y;
-      if (!dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
-        dragging = true;
-      }
+      if (!dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD) dragging = true;
       if (dragging) {
         const mvx = e.clientX - prevClient.x;
         const mvy = e.clientY - prevClient.y;
@@ -211,14 +303,13 @@ export default function HeroGlowOrb() {
       }
     };
 
-    const onPointerUp = (e: PointerEvent) => {
+    const onPointerUp = () => {
       if (dragging) {
         dragging = false;
-      } else if (downActive && !isInteractive(e)) {
-        pulse = 1.3;
-        const rect = canvas.getBoundingClientRect();
-        ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 6, maxR: Math.max(width, height) * 0.5, alpha: 0.45 });
-        if (ripples.length > 6) ripples.shift();
+      } else if (downActive) {
+        pulse = 1.28;
+        nextPal = (curPal + 1) % PALETTES.length;
+        colorT = 0;
       }
       downActive = false;
       dragging = false;
@@ -240,116 +331,49 @@ export default function HeroGlowOrb() {
       last = now;
       t += 0.012 * dt;
 
-      const cx = width / 2;
-      const cy = height / 2;
-
       if (dragging) {
-        rotY += (rotTargetY - rotY) * 0.11;
-        rotX += (rotTargetX - rotX) * 0.11;
-        speed = Math.min(1, Math.abs(rotTargetY - rotY) * 1.4);
-        scaleX += (1.06 - scaleX) * 0.1;
-        scaleY += (0.95 - scaleY) * 0.1;
+        rotY += (rotTargetY - rotY) * 0.06;
+        rotX += (rotTargetX - rotX) * 0.06;
       } else {
-        const baseY = 0.28 + Math.sin(t * 0.3) * 0.12;
-        const baseX = 0.16 + Math.cos(t * 0.24) * 0.1;
+        const baseY = 0.25 + Math.sin(t * 0.3) * 0.12;
+        const baseX = 0.1 + Math.cos(t * 0.24) * 0.08;
         rotTargetY += (baseY - rotTargetY) * 0.035;
         rotTargetX += (baseX - rotTargetX) * 0.035;
-        rotY += (rotTargetY - rotY) * 0.1;
-        rotX += (rotTargetX - rotX) * 0.1;
-        speed *= 0.94;
-        scaleX += (1 - scaleX) * 0.1;
-        scaleY += (1 - scaleY) * 0.1;
+        rotY += (rotTargetY - rotY) * 0.08;
+        rotX += (rotTargetX - rotX) * 0.08;
       }
 
-      pulse += (1 - pulse) * 0.1;
+      const lagTarget = Math.min(0.9, Math.abs(rotTargetY - rotY) * 3 + Math.abs(rotTargetX - rotX) * 2);
+      lag += (lagTarget - lag) * 0.1;
+
+      const sy = window.scrollY;
+      const prog = clamp(sy / Math.max(1, height * 0.7) + 0.22, 0, 1);
+      mixCur += (prog - mixCur) * 0.06;
+
+      pulse += (1 - pulse) * 0.08;
       if (pulse <= 1.02) pulse = 1;
-      color = (((t * 0.045 + rotY * 0.05) % 1) + 1) % 1;
-      const cur = colorAt(color);
 
-      ctx.clearRect(0, 0, width, height);
-      ctx.globalCompositeOperation = "lighter";
-
-      for (let i = ripples.length - 1; i >= 0; i--) {
-        const rp = ripples[i];
-        rp.r += (rp.maxR - rp.r) * 0.05 + 1.4;
-        rp.alpha *= 0.96;
-        if (rp.alpha < 0.02) {
-          ripples.splice(i, 1);
-          continue;
-        }
-        ctx.strokeStyle = `rgba(${cur.r},${cur.g},${cur.b},${rp.alpha})`;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
-        ctx.stroke();
+      colorT += (1 - colorT) * 0.06;
+      if (colorT > 0.98) {
+        curPal = nextPal;
+        colorT = 0;
       }
 
-      const scale = Math.min(width, height) * 0.5 * pulse;
-      const focal = Math.max(width, height) * 1.4;
-      const swayAmp = scale * 0.03;
-      const cosY = Math.cos(rotY);
-      const sinY = Math.sin(rotY);
-      const cosX = Math.cos(rotX);
-      const sinX = Math.sin(rotX);
-      const trailAlpha = dragging ? Math.min(0.24, speed * 0.18) : 0;
-      const attractR = Math.min(170, Math.max(width, height) * 0.24);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
 
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        const swayX = Math.sin(t * 0.5 + p.phase) * p.sway * swayAmp;
-        const swayY = Math.cos(t * 0.62 + p.phase * 1.3) * p.sway * swayAmp;
-        const swayZ = Math.sin(t * 0.42 + p.phase * 0.7) * p.sway * swayAmp;
+      if (uTime) gl.uniform1f(uTime, t);
+      if (uRotX) gl.uniform1f(uRotX, rotX);
+      if (uRotY) gl.uniform1f(uRotY, rotY);
+      if (uLag) gl.uniform1f(uLag, lag);
+      if (uMix) gl.uniform1f(uMix, mixCur);
+      if (uPulse) gl.uniform1f(uPulse, pulse);
+      if (uCamZ) gl.uniform1f(uCamZ, CAM_Z);
+      if (uColA) gl.uniform3f(uColA, PALETTES[curPal][0], PALETTES[curPal][1], PALETTES[curPal][2]);
+      if (uColB) gl.uniform3f(uColB, PALETTES[nextPal][0], PALETTES[nextPal][1], PALETTES[nextPal][2]);
+      if (uMixCol) gl.uniform1f(uMixCol, colorT);
 
-        const lx = (p.x * scale + swayX) * scaleX;
-        const ly = (p.y * scale + swayY) * scaleY;
-        const lz = p.z * scale + swayZ;
-
-        const x1 = lx * cosY - lz * sinY;
-        const z1 = lx * sinY + lz * cosY;
-        const y1 = ly * cosX - z1 * sinX;
-        const z2 = ly * sinX + z1 * cosX;
-
-        const persp = focal / (focal + z2);
-        let sx = cx + x1 * persp;
-        let sy = cy + y1 * persp;
-
-        let glow = 1;
-        if (dragging) {
-          const d = Math.hypot(sx - cursorLocal.x, sy - cursorLocal.y);
-          if (d < attractR) {
-            const f = 1 - d / attractR;
-            const pull = f * f * 14;
-            const ang = Math.atan2(sy - cursorLocal.y, sx - cursorLocal.x);
-            sx += Math.cos(ang) * pull;
-            sy += Math.sin(ang) * pull;
-            glow = 1 + f * 1.1;
-          }
-        }
-
-        const frame = (((Math.floor(color * COLOR_STEPS) + Math.round(p.tint)) % COLOR_STEPS) + COLOR_STEPS) % COLOR_STEPS;
-        const spr = sprites[frame] ?? sprites[0];
-        const size = p.size * persp * Math.sqrt(glow);
-        const alpha = Math.min(1, p.alpha * glow * (0.55 + 0.5 * persp));
-
-        if (trailAlpha > 0.02 && i < prevSX.length) {
-          ctx.strokeStyle = `rgba(${cur.r},${cur.g},${cur.b},${trailAlpha * alpha})`;
-          ctx.lineWidth = Math.max(0.5, size * 0.3);
-          ctx.beginPath();
-          ctx.moveTo(prevSX[i], prevSY[i]);
-          ctx.lineTo(sx, sy);
-          ctx.stroke();
-        }
-
-        ctx.globalAlpha = alpha * 0.35;
-        ctx.drawImage(spr, sx - size * 1.5, sy - size * 1.5, size * 3, size * 3);
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(spr, sx - size, sy - size, size * 2, size * 2);
-        prevSX[i] = sx;
-        prevSY[i] = sy;
-      }
-
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = "source-over";
+      gl.drawArrays(gl.POINTS, 0, count);
     };
     draw(performance.now());
 
@@ -360,6 +384,8 @@ export default function HeroGlowOrb() {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerCancel);
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
     };
   }, []);
 
