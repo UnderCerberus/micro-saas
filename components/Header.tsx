@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useWorkspace } from "@/components/Workspace";
 
 export default function Header() {
+  const { open } = useWorkspace();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -50,12 +52,13 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-        <Link
-          href="/brandkit"
+        <button
+          type="button"
+          onClick={() => open("brandkit")}
           className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
         >
-          Mikkoを無料で試す
-        </Link>
+          Mikkoを試す
+        </button>
       </div>
     </header>
   );

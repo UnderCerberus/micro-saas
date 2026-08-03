@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollGlow from "@/components/ScrollGlow";
+import { WorkspaceProvider } from "@/components/Workspace";
 
 const noto = Noto_Sans_JP({
   variable: "--font-noto",
@@ -32,9 +33,11 @@ export default function RootLayout({
     <html lang="ja" className={`${noto.variable} ${space.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-base text-ink">
         <ScrollGlow />
-        <Header />
-        <main className="relative z-10 flex-1">{children}</main>
-        <Footer />
+        <WorkspaceProvider>
+          <Header />
+          <main className="relative z-10 flex-1">{children}</main>
+          <Footer />
+        </WorkspaceProvider>
       </body>
     </html>
   );

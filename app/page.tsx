@@ -2,7 +2,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import HeroGlowOrb from "@/components/HeroGlowOrb";
 import HeroWipe from "@/components/HeroWipe";
-import { WorkspaceProvider, OpenWorkspaceButton, type WorkspaceTab } from "@/components/Workspace";
+import { OpenWorkspaceButton, type WorkspaceTab } from "@/components/Workspace";
 
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -99,7 +99,6 @@ const tools: { title: string; desc: string; tab: WorkspaceTab; icon: React.React
 
 export default function Home() {
   return (
-    <WorkspaceProvider>
     <div className="bg-base">
       {/* ===== 1. HERO ===== */}
       <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-black select-none touch-pan-y">
@@ -246,18 +245,14 @@ export default function Home() {
           </Reveal>
           <Reveal delay={120}>
             <div className="mt-12 flex justify-center">
-              <Link
-                href="/contentpilot"
-                className="group inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-10 py-5 text-sm font-semibold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-              >
-                Mikkoを無料で試す
-                <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-              </Link>
+              <OpenWorkspaceButton
+                tab="contentpilot"
+                className="group/btn inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-10 py-5 text-sm font-semibold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              />
             </div>
           </Reveal>
         </div>
       </section>
     </div>
-    </WorkspaceProvider>
   );
 }
