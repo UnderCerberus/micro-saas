@@ -45,7 +45,7 @@ export default function Header() {
               料金
             </Link>
             <Link
-              href="mailto:contact@mikko.app"
+              href="/contact"
               className={`transition-colors duration-300 ${dark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"}`}
             >
               お問い合わせ

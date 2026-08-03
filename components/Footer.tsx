@@ -9,7 +9,9 @@ export default function Footer() {
           <Link href="/brandkit" className="hover:text-brand">BrandKit</Link>
           <Link href="/contentpilot" className="hover:text-brand">ContentPilot</Link>
           <Link href="/pricing" className="hover:text-brand">料金</Link>
-          <Link href="mailto:contact@mikko.app" className="hover:text-brand">お問い合わせ</Link>
+          <Link href="/contact" className="hover:text-brand">お問い合わせ</Link>
+          <Link href="/terms" className="hover:text-brand">利用規約</Link>
+          <Link href="/privacy" className="hover:text-brand">プライバシー</Link>
         </nav>
         <p>
           <span className="inline-flex items-center gap-1">
