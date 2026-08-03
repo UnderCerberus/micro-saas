@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import HeroGlowOrb from "@/components/HeroGlowOrb";
 
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -68,33 +69,20 @@ const stats = [
   { value: "24/7", label: "自動で稼働" },
 ];
 
-const btnPrimary =
-  "group inline-flex items-center gap-3 rounded-full bg-brand px-8 py-4 text-sm font-semibold text-white shadow-[0_10px_36px_-8px_rgba(74,69,145,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-[0_14px_44px_-8px_rgba(74,69,145,0.6)]";
-
 export default function Home() {
   return (
-    <div className="overflow-hidden bg-base">
+    <div className="bg-base">
       {/* ===== 1. HERO ===== */}
-      <section className="relative flex min-h-[90svh] flex-col justify-center">
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute left-1/2 top-[40%] h-[480px] w-[780px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/10 blur-[130px]" />
-          <svg
-            className="absolute left-1/2 top-1/2 h-[120vmin] w-[120vmin] -translate-x-1/2 -translate-y-1/2 text-ink/5"
-            viewBox="0 0 800 800"
-            fill="none"
-          >
-            <circle cx="400" cy="400" r="300" stroke="currentColor" strokeWidth="1" />
-            <circle cx="400" cy="400" r="390" stroke="currentColor" strokeWidth="0.75" />
-            <path d="M400 100 C 620 200, 620 600, 400 700 C 180 600, 180 200, 400 100 Z" stroke="currentColor" strokeWidth="0.75" />
-          </svg>
-        </div>
+      <section className="relative flex min-h-[90svh] flex-col justify-center overflow-hidden bg-slate-950">
+        <HeroGlowOrb />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-base" aria-hidden />
 
         <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-28 text-center">
           <Reveal>
-            <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-ink sm:text-7xl">
+            <h1 className="mx-auto max-w-4xl font-display text-5xl font-light leading-[1.15] tracking-tight text-white sm:text-7xl">
               ブランドを
               <br />
-              <span className="bg-gradient-to-r from-brand via-brand-2 to-brand bg-clip-text font-semibold text-transparent">
+              <span className="bg-gradient-to-r from-[#93C5FD] via-[#C7D2FE] to-[#93C5FD] bg-clip-text font-semibold text-transparent">
                 ゼロコスト
               </span>
               で、
@@ -104,20 +92,20 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={120}>
-            <p className="mx-auto mt-8 max-w-xl text-sm font-light leading-relaxed text-ink-soft sm:text-base">
+            <p className="mx-auto mt-8 max-w-xl text-sm font-light leading-relaxed text-slate-300 sm:text-base">
               OG画像・ロゴ・AI記事生成。サーバー費用0円で、あなたのサービスを誰よりも早く形に。
             </p>
           </Reveal>
 
           <Reveal delay={200}>
             <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/brandkit" className={btnPrimary}>
-                無料で使い始める
+              <Link href="/brandkit" className="group inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-8 py-4 text-sm font-semibold text-white shadow-[0_12px_40px_-8px_rgba(37,99,235,0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]">
+                Mikkoを無料で試す
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
               <Link
                 href="#features"
-                className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-7 py-4 text-sm font-medium text-ink-soft transition-colors duration-300 hover:border-brand/30 hover:text-brand"
+                className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-slate-200 transition-colors duration-300 hover:border-white/50 hover:text-white"
               >
                 機能を見る
               </Link>
@@ -161,7 +149,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-6xl px-6">
           <Reveal>
             <p className="mb-14 text-center text-xs font-light tracking-[0.35em] text-brand">
-              WHY MICROKIT
+              WHY MIKKO
             </p>
           </Reveal>
           <div className="grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
@@ -200,7 +188,7 @@ export default function Home() {
                   <span className="h-3 w-3 rounded-full bg-ink/15" />
                   <span className="h-3 w-3 rounded-full bg-ink/15" />
                   <span className="ml-4 hidden flex-1 rounded-md bg-base px-3 py-1 text-[11px] font-light text-ink-soft sm:block">
-                    microkit.app/brandkit
+                    mikko.app/brandkit
                   </span>
                 </div>
                 <div className="flex">
@@ -212,7 +200,7 @@ export default function Home() {
                   </div>
                   <div className="flex-1 p-5 sm:p-7">
                     <div className="flex aspect-[1200/630] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-brand via-brand-deep to-brand-2 px-8 text-center text-white shadow-inner">
-                      <div className="text-sm font-light tracking-widest text-white/80">MICROKIT</div>
+                      <div className="text-sm font-light tracking-widest text-white/80">MIKKO</div>
                       <div className="mt-3 font-display text-xl font-semibold sm:text-2xl">
                         ブランド素材を数秒で生成する
                       </div>
@@ -247,9 +235,9 @@ export default function Home() {
             <div className="mt-12 flex justify-center">
               <Link
                 href="/contentpilot"
-                className="group inline-flex items-center gap-3 rounded-full bg-white px-10 py-5 text-sm font-semibold text-brand shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                className="group inline-flex items-center gap-3 rounded-full bg-[#2563EB] px-10 py-5 text-sm font-semibold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
               >
-                無料で使い始める
+                Mikkoを無料で試す
                 <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
             </div>

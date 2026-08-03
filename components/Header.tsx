@@ -1,32 +1,61 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const nav = [
-  { href: "/brandkit", label: "BrandKit", desc: "素材生成" },
-  { href: "/contentpilot", label: "ContentPilot", desc: "AI文章生成" },
-  { href: "/pricing", label: "料金" },
-];
-
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const dark = !scrolled;
+
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-surface/85 backdrop-blur">
+    <header
+      className={`sticky top-0 z-50 transition-colors duration-300 ${
+        dark
+          ? "border-b border-white/10 bg-slate-900/80 backdrop-blur"
+          : "border-b border-line bg-white/80 backdrop-blur"
+      }`}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight text-ink">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-2 text-sm font-black text-white">
-            M
-          </span>
-          <span className="text-lg">MicroKit</span>
-        </Link>
-        <nav className="flex items-center gap-1 text-sm text-ink-soft">
-          {nav.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="rounded-md px-3 py-1.5 transition hover:bg-brand-soft hover:text-brand"
+        <div className="flex items-center gap-10">
+          <Link href="/" className="flex items-center gap-2 font-extrabold tracking-tight">
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#6366F1] text-sm font-black text-white`}
             >
-              {n.label}
+              M
+            </span>
+            <span className={`text-lg transition-colors duration-300 ${dark ? "text-white" : "text-ink"}`}>
+              Mikko
+            </span>
+          </Link>
+          <nav className="flex items-center gap-8 text-sm font-semibold">
+            <Link
+              href="/pricing"
+              className={`transition-colors duration-300 ${dark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"}`}
+            >
+              料金
             </Link>
-          ))}
-        </nav>
+            <Link
+              href="mailto:contact@mikko.app"
+              className={`transition-colors duration-300 ${dark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"}`}
+            >
+              お問い合わせ
+            </Link>
+          </nav>
+        </div>
+        <Link
+          href="/brandkit"
+          className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
+        >
+          Mikkoを無料で試す
+        </Link>
       </div>
     </header>
   );

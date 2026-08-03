@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "料金プラン｜MicroKit",
-  description: "MicroKitの料金プラン。基本無料で、Proプランは月額¥500から。Stripeで即時決済できます。",
+  title: "料金プラン｜Mikko",
+  description: "Mikkoの料金プラン。基本無料で、Proプランは月額¥500から。Stripeで即時決済できます。",
 };
 
 const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";

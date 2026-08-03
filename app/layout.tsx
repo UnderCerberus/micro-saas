@@ -18,7 +18,7 @@ const space = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MicroKit｜無料で使えるWeb制作ツール（OG画像・ロゴ・AI文章生成）",
+  title: "Mikko｜無料で使えるWeb制作ツール（OG画像・ロゴ・AI文章生成）",
   description:
     "ブランド素材（OG画像・ロゴ・ファビコン・QRコード）を数秒で生成し、AIでブログ記事・SNS投稿・キャッチコピーを自動生成。完全無料で使えるWebツールスイート。",
 };
