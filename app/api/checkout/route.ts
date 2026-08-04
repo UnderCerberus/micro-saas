@@ -7,8 +7,6 @@ export const runtime = "nodejs";
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_PRICE_STANDARD = process.env.STRIPE_PRICE_STANDARD || "";
 const STRIPE_PRICE_PRO = process.env.STRIPE_PRICE_PRO || "";
-const STANDARD_LINK = process.env.NEXT_PUBLIC_STRIPE_STANDARD_LINK || "";
-const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || "";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,12 +15,7 @@ export async function POST(req: NextRequest) {
     const anonId = sanitizeAnonId(body.anonId || null);
     const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // Stripeが未設定の場合は既存のPayment Linkにフォールバック
     if (!STRIPE_SECRET_KEY) {
-      const fallback = plan === "pro" ? PRO_LINK : STANDARD_LINK;
-      if (fallback) {
-        return Response.json({ url: fallback });
-      }
       return Response.json({ error: "決済機能の設定が完了していません。" }, { status: 503 });
     }
 
