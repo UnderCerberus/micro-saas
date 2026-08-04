@@ -322,13 +322,22 @@ export default function BrandKitClient() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-bold text-ink-soft">プレビュー</h2>
               <span
-                className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                  remaining > 0
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-bold ${
+                  paid
                     ? "border border-brand/30 bg-brand-soft text-brand"
-                    : "border border-rose-500/30 bg-rose-500/10 text-rose-600"
+                    : remaining > 0
+                      ? "border border-brand/30 bg-brand-soft text-brand"
+                      : "border border-rose-500/30 bg-rose-500/10 text-rose-600"
                 }`}
               >
-                FREE枠 残り{remaining}回
+                {paid ? (
+                  <>
+                    プラン：
+                    <span className="text-brand">{plan === "pro" ? "Pro（無制限）" : "Standard（無制限）"}</span>
+                  </>
+                ) : (
+                  <>FREE枠 残り{remaining}回</>
+                )}
               </span>
             </div>
             {tool === "qr" ? (
