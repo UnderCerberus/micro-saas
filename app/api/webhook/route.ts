@@ -18,6 +18,15 @@ async function setPlanFromMetadata(
   }
 }
 
+/** 定期購読のメタデータから匿名IDを取得してプランを解除する。 */
+async function revokePlan(subscription: Stripe.Subscription | Stripe.Checkout.Session) {
+  const meta = (subscription as Stripe.Subscription).metadata ||
+    ((subscription as Stripe.Checkout.Session).metadata as Stripe.Metadata | undefined) ||
+    null;
+  const anonId = sanitizeAnonId((meta?.anonId as string | undefined) || null);
+  if (anonId) await setPlan(anonId, "free");
+}
+
 export async function POST(req: NextRequest) {
   const payload = await req.text();
   const signature = req.headers.get("stripe-signature") || "";
@@ -45,6 +54,30 @@ export async function POST(req: NextRequest) {
     }
     case "checkout.session.expired": {
       // 支払いが完了しなかった場合は何もしない（プランは付与されていない）
+      break;
+    }
+    case "invoice.paid": {
+      // 定期購読の毎月の支払い成功 → プランを維持・更新する
+      const invoice = event.data.object as Stripe.Invoice;
+      // StripeのInvoiceはトップレベルに subscription（ID）を持つが、
+      // 型定義では未定義のため直接キャストして取得する。
+      const subId = (invoice as unknown as { subscription: string | null })
+        .subscription;
+      if (subId) {
+        const stripe = new Stripe(STRIPE_SECRET_KEY);
+        const subscription = await stripe.subscriptions.retrieve(subId);
+        const plan =
+          subscription.metadata?.plan === "pro" ? "pro" : "standard";
+        await setPlanFromMetadata(subscription.metadata, plan);
+      }
+      break;
+    }
+    case "customer.subscription.deleted":
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      if (subscription.status === "canceled" || subscription.status === "unpaid") {
+        await revokePlan(subscription);
+      }
       break;
     }
     case "charge.refunded":
