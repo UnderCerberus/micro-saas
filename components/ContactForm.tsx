@@ -11,10 +11,13 @@ export default function ContactForm() {
   const [category, setCategory] = useState("ご質問・ご相談");
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setSuccess(false);
 
     if (!name.trim() || !email.trim() || !body.trim()) {
       setError("お名前・メールアドレス・お問い合わせ内容を入力してください。");
@@ -25,11 +28,28 @@ export default function ContactForm() {
       return;
     }
 
-    const subject = encodeURIComponent(`【お問い合わせ】${category}（${name}）`);
-    const text = encodeURIComponent(
-      `お名前：${name}\nメールアドレス：${email}\nカテゴリ：${category}\n\n${body}`,
-    );
-    window.location.href = `mailto:contact@mikko.app?subject=${subject}&body=${text}`;
+    setSending(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, category, text: body }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error || "送信に失敗しました。時間をおいてお試しください。");
+        return;
+      }
+      setSuccess(true);
+      setName("");
+      setEmail("");
+      setCategory("ご質問・ご相談");
+      setBody("");
+    } catch {
+      setError("送信に失敗しました。時間をおいてお試しください。");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -86,15 +106,22 @@ export default function ContactForm() {
         </p>
       )}
 
+      {success && (
+        <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
+          お問い合わせを受け付けました。ご返信をお待ちください。
+        </p>
+      )}
+
       <button
         type="submit"
-        className="w-full rounded-xl bg-[#2563EB] px-6 py-3.5 font-bold text-white shadow-lg shadow-[#2563EB]/25 transition hover:-translate-y-0.5 hover:bg-[#1d4ed8] sm:w-auto sm:px-10"
+        disabled={sending}
+        className="w-full rounded-xl bg-[#2563EB] px-6 py-3.5 font-bold text-white shadow-lg shadow-[#2563EB]/25 transition hover:-translate-y-0.5 hover:bg-[#1d4ed8] disabled:opacity-60 sm:w-auto sm:px-10"
       >
-        送信する（メーラーが開きます）
+        {sending ? "送信中..." : "送信する"}
       </button>
 
       <p className="text-xs text-ink-soft">
-        送信ボタンを押すと、お使いのメールソフトが起動し、入力内容が自動入力されたメールが作成されます。そのまま送信してください。
+        送信ボタンを押すと、運営者宛にメールが届きます。ご返信まで数日かかる場合があります。
       </p>
     </form>
   );
