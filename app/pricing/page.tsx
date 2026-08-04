@@ -100,7 +100,18 @@ function PlanCard({
   );
 }
 
-export default function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const status = String(params.status || "");
+  const plan = String(params.plan || "");
+
+  const success = status === "success";
+  const cancel = status === "cancel";
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <div className="text-center">
@@ -109,6 +120,19 @@ export default function PricingPage() {
           基本機能は無料。手軽に始めるならStandard、徹底的に使うならPro。あなたの使い方に合わせて選べる3プランです。
         </p>
       </div>
+
+      {success && (
+        <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-sm font-bold text-emerald-700">
+          お支払いが完了しました。{plan === "pro" ? "Pro" : "Standard"}（{
+            plan === "pro" ? "¥900/月" : "¥500/月"
+          }）をご利用いただけます。各ツールをご利用ください。
+        </div>
+      )}
+      {cancel && (
+        <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-center text-sm font-bold text-amber-700">
+          決済はキャンセルされました。プランは変更されていません。いつでも再選択できます。
+        </div>
+      )}
 
       <div className="mt-12 grid gap-6 sm:grid-cols-3">
         <PlanCard
