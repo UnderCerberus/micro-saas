@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getUsage, incrementUsage, sanitizeAnonId } from "@/lib/limits";
+import { getUsage, incrementUsage, sanitizeAnonId, checkRateLimit } from "@/lib/limits";
 import { getPlan, isPaid } from "@/lib/plan";
 import { getAuthedUserId } from "@/lib/supabase-server";
 
@@ -90,6 +90,17 @@ export async function POST(req: NextRequest) {
     const anonId = authed || sanitizeAnonId(req.headers.get("x-anon-id"));
     const plan = await getPlan(anonId);
     const paid = isPaid(plan);
+
+    // 課金搾取/DoS対策：同一IPからの生成は1分間に10回まで（paid含む全ユーザー対象）
+    const fwd = req.headers.get("x-forwarded-for");
+    const ip = (fwd ? fwd.split(",")[0].trim() : req.headers.get("x-real-ip")) || "unknown";
+    const ratelimited = await checkRateLimit("generate", `ip:${ip}`, 10, 60);
+    if (ratelimited) {
+      return Response.json(
+        { demo: false, error: "limit", message: "リクエストが集中しています。しばらくしてからお試しください。" },
+        { status: 429 },
+      );
+    }
 
     // 有料プランはサーバー側では上限なし（毎回カウントは記録する）
     const current = !paid && anonId ? await getUsage("contentpilot", anonId) : null;

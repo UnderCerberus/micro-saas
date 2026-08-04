@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
-import { sanitizeAnonId } from "@/lib/limits";
+import { sanitizeAnonId, checkRateLimit } from "@/lib/limits";
 import { getAuthedUserId } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -9,8 +9,26 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_PRICE_STANDARD = process.env.STRIPE_PRICE_STANDARD || "";
 const STRIPE_PRICE_PRO = process.env.STRIPE_PRICE_PRO || "";
 
+/** IPアドレス（接続元）を推定。Vercelは x-forwarded-for を使う。 */
+function clientIp(req: NextRequest): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) {
+    return fwd.split(",")[0].trim();
+  }
+  return req.headers.get("x-real-ip") || req.headers.get("cf-connecting-ip") || "unknown";
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // Stripeセッション生成の詰めすぎ（DoS/APIコスト搾取）対策：同一IPは10分間で5回まで
+    const ratelimited = await checkRateLimit("checkout", `ip:${clientIp(req)}`, 5, 600);
+    if (ratelimited) {
+      return Response.json(
+        { error: "リクエストが集中しています。しばらくしてからお試しください。" },
+        { status: 429 },
+      );
+    }
+
     const body = (await req.json()) as { plan?: string; anonId?: string };
     const plan = body.plan === "pro" ? "pro" : "standard";
     const authed = await getAuthedUserId(req);

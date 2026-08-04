@@ -51,3 +51,24 @@ export function sanitizeAnonId(value: string | null): string {
   const trimmed = value.trim();
   return /^[A-Za-z0-9-]{8,64}$/.test(trimmed) ? trimmed : "";
 }
+
+/**
+ * 単純な固定ウィンドウのレートリミット。
+ * 指定ウィンドウ秒数内で limit 回を超えたら true（超過）を返す。
+ * KV未設定時は拒否しない（安全側ではないが、本番KVがなければ機能を止めない）。
+ */
+export async function checkRateLimit(
+  bucket: string,
+  id: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<boolean> {
+  const client = kv();
+  if (!client || !id) return false;
+  const key = `rl:${bucket}:${Math.floor(Date.now() / (windowSeconds * 1000))}:${id}`;
+  const current = await client.incr(key);
+  if (current === 1) {
+    await client.expire(key, windowSeconds);
+  }
+  return current > limit;
+}

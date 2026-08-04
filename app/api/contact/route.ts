@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { Resend } from "resend";
+import { checkRateLimit } from "@/lib/limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 20;
@@ -7,12 +8,31 @@ export const maxDuration = 20;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const CONTACT_TO = process.env.CONTACT_TO || "";
 
+/** IPアドレス（接続元）を推定。Vercelは x-forwarded-for を使う。 */
+function clientIp(req: NextRequest): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) {
+    return fwd.split(",")[0].trim();
+  }
+  return req.headers.get("x-real-ip") || req.headers.get("cf-connecting-ip") || "unknown";
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!RESEND_API_KEY || !CONTACT_TO) {
       return Response.json(
         { error: "問い合わせ機能の設定が完了していません。" },
         { status: 503 },
+      );
+    }
+
+    // スパム/メール送信搾取への対策：同一IPは10分間で3通まで
+    const ip = clientIp(req);
+    const ratelimited = await checkRateLimit("contact", `ip:${ip}`, 3, 600);
+    if (ratelimited) {
+      return Response.json(
+        { error: "送信が集中しています。しばらくしてからお試しください。" },
+        { status: 429 },
       );
     }
 
