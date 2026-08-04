@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { sanitizeAnonId } from "@/lib/limits";
+import { getAuthedUserId } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as { plan?: string; anonId?: string };
     const plan = body.plan === "pro" ? "pro" : "standard";
-    const anonId = sanitizeAnonId(body.anonId || null);
+    const authed = await getAuthedUserId(req);
+    const anonId = authed || sanitizeAnonId(body.anonId || null);
     const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     if (!STRIPE_SECRET_KEY) {

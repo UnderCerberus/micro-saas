@@ -5,9 +5,21 @@ export function monthKey(now: Date = new Date()): string {
   return `${y}-${m}`;
 }
 
-/** 匿名ユーザーID（ブラウザに永続化）。初回は生成して保存する。 */
+declare global {
+  interface Window {
+    __mikko_user_id?: string | null;
+  }
+}
+
+/**
+ * ユーザーID（ブラウザに永続化）。
+ * ログイン中は Supabase の user.id を使い（複数デバイスで共通）、
+ * 未ログイン時はローカル生成の匿名IDを使う。
+ */
 export function anonymousId(): string {
   if (typeof window === "undefined") return "ssr";
+  const loggedInId = window.__mikko_user_id;
+  if (loggedInId) return loggedInId;
   const KEY = "mikko_anon_id";
   let id = localStorage.getItem(KEY);
   if (!id) {
@@ -15,6 +27,12 @@ export function anonymousId(): string {
     localStorage.setItem(KEY, id);
   }
   return id;
+}
+
+/** ログイン状態をブラウザのグローバルに反映する（ログイン/ログアウト時に呼ぶ）。 */
+export function setLoggedInUserId(id: string | null): void {
+  if (typeof window === "undefined") return;
+  window.__mikko_user_id = id ?? null;
 }
 
 /** 月別ローカル利用回数（クライアント表示用）。 */

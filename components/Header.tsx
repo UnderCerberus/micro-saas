@@ -3,10 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useWorkspace } from "@/components/Workspace";
+import LoginModal from "@/components/LoginModal";
+import { useAuth } from "@/lib/useAuth";
+import { getSupabase } from "@/lib/supabase";
 
 export default function Header() {
   const { open } = useWorkspace();
   const [scrolled, setScrolled] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const auth = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.5);
@@ -16,6 +21,12 @@ export default function Header() {
   }, []);
 
   const dark = !scrolled;
+
+  async function handleLogout() {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    await supabase.auth.signOut();
+  }
 
   return (
     <header
@@ -52,14 +63,48 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-        <button
-          type="button"
-          onClick={() => open("brandkit")}
-          className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
-        >
-          Mikkoを試す
-        </button>
+        <div className="flex items-center gap-3">
+          {!auth.unavailable && (
+            auth.isLoggedIn ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  dark
+                    ? "border-white/20 text-white/80 hover:border-white/50 hover:text-white"
+                    : "border-line text-ink-soft hover:border-brand hover:text-brand"
+                }`}
+              >
+                ログアウト
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowLogin(true)}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  dark
+                    ? "border-white/20 text-white/80 hover:border-white/50 hover:text-white"
+                    : "border-line text-ink-soft hover:border-brand hover:text-brand"
+                }`}
+              >
+                ログイン
+              </button>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => open("brandkit")}
+            className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgba(37,99,235,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8]"
+          >
+            Mikkoを試す
+          </button>
+        </div>
       </div>
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+        />
+      )}
     </header>
   );
 }

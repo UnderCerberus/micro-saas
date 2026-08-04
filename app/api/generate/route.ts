@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getUsage, incrementUsage, sanitizeAnonId } from "@/lib/limits";
 import { getPlan, isPaid } from "@/lib/plan";
+import { getAuthedUserId } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -85,7 +86,8 @@ AI出力はそのまま使わず、必ず事実確認と加筆・修正を行い
 
 export async function POST(req: NextRequest) {
   try {
-    const anonId = sanitizeAnonId(req.headers.get("x-anon-id"));
+    const authed = await getAuthedUserId(req);
+    const anonId = authed || sanitizeAnonId(req.headers.get("x-anon-id"));
     const plan = await getPlan(anonId);
     const paid = isPaid(plan);
 
