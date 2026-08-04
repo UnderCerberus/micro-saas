@@ -50,6 +50,12 @@ export default function Header() {
           </Link>
           <nav className="flex items-center gap-8 text-sm font-semibold">
             <Link
+              href="/blog"
+              className={`transition-colors duration-300 ${dark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"}`}
+            >
+              ブログ
+            </Link>
+            <Link
               href="/pricing"
               className={`transition-colors duration-300 ${dark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"}`}
             >

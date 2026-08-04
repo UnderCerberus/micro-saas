@@ -3,6 +3,7 @@ import Reveal from "@/components/Reveal";
 import HeroGlowOrb from "@/components/HeroGlowOrb";
 import HeroWipe from "@/components/HeroWipe";
 import { OpenWorkspaceButton, type WorkspaceTab } from "@/components/Workspace";
+import { getAllPosts } from "@/lib/posts";
 
 function Icon({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -98,6 +99,8 @@ const tools: { title: string; desc: string; tab: WorkspaceTab; icon: React.React
 ];
 
 export default function Home() {
+  const blogPosts = getAllPosts().slice(0, 3);
+
   return (
     <div className="bg-base">
       {/* ===== 1. HERO ===== */}
@@ -198,7 +201,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 4. TRUST ===== */}
+      {/* ===== 4. BLOG ===== */}
+      <section className="relative py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-6">
+          <Reveal>
+            <div className="mb-14 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="mb-4 text-xs font-light tracking-[0.35em] text-brand">GUIDE</p>
+                <h2 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+                  作り方・使い方を学ぶ
+                </h2>
+              </div>
+              <Link
+                href="/blog"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
+              >
+                記事一覧を見る →
+              </Link>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            {blogPosts.map((post, i) => (
+              <Reveal key={post.slug} delay={i * 90}>
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="group flex h-full flex-col rounded-3xl border border-line bg-surface p-7 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand/25 hover:shadow-[0_20px_50px_-18px_rgba(74,69,145,0.25)]"
+                >
+                  <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
+                    <span className="rounded-full bg-brand-soft px-2.5 py-1 font-semibold text-brand">
+                      {post.category}
+                    </span>
+                    <time dateTime={post.date}>
+                      {new Date(post.date).toLocaleDateString("ja-JP", {
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </time>
+                  </div>
+                  <h3 className="text-base font-bold leading-snug text-ink transition-colors group-hover:text-brand">
+                    {post.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-3 text-sm font-light leading-relaxed text-ink-soft">
+                    {post.description}
+                  </p>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== 5. TRUST ===== */}
       <section className="relative py-20">
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-gradient-to-r from-brand/5 via-brand-soft to-brand/5 py-28" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-6">
@@ -222,7 +276,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== 5. CTA ===== */}
+      {/* ===== 6. CTA ===== */}
       <section className="relative rounded-t-[3rem] bg-brand py-24 text-white sm:py-32">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[3rem]" aria-hidden>
           <div className="absolute -top-24 left-1/2 h-72 w-[60%] -translate-x-1/2 rounded-full bg-white/10 blur-[100px]" />

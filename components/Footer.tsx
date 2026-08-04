@@ -6,6 +6,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-ink-soft sm:flex-row">
         <p className="font-semibold text-ink">Mikko</p>
         <nav className="flex flex-wrap items-center gap-4">
+          <Link href="/blog" className="hover:text-brand">ブログ</Link>
           <Link href="/brandkit" className="hover:text-brand">BrandKit</Link>
           <Link href="/contentpilot" className="hover:text-brand">ContentPilot</Link>
           <Link href="/pricing" className="hover:text-brand">料金</Link>
