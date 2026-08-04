@@ -10,7 +10,7 @@
 
 - **BrandKit** — OG画像・ロゴ・ファビコン・QRコードをブラウザ内で生成（Free: 月2回DL / QRは有料）
 - **ContentPilot** — Geminiによるブログ記事・Xスレッド・キャッチコピー生成（Free: 月1回）
-- **料金プラン** — Free / Standard ¥500 / Pro ¥900（Stripe Checkoutで即時決済）
+- **料金プラン** — Free / Standard ¥500/月 / Pro ¥900/月（Stripe Checkoutの定期購読で即時登録・毎月自動継続）
 - **ログイン** — Supabaseのマジックリンク認証。ログインすると購入プランがデバイスをまたいで共有される
 - **匿名購入の引き継ぎ** — 未ログインで購入 → 後からログインするとプランが自動でアカウントへ移行（/api/claim）
 - **ブログ** — SEOガイド記事10本（SSG生成・sitemap自動反映）
@@ -48,7 +48,7 @@ npm run build
 |---|---|
 | `GEMINI_API_KEY` | ContentPilotのAI生成（Google AI Studioで無料取得）。未設定時はデモ出力 |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe決済・Webhook署名検証 |
-| `STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PRO` | 各プランのPrice ID（¥500 / ¥900） |
+| `STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PRO` | 各プランの**定期購読**Price ID（¥500/月 / ¥900/月） |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel KV（Upstash）。月次利用制限・プラン保存・レートリミット |
 | `RESEND_API_KEY` / `CONTACT_TO` | お問い合わせメール送信 |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | Google AdSense クライアントID（ca-pub-...） |
@@ -66,8 +66,17 @@ npm run build
 
 1. Stripe Dashboard → Developers → Webhooks でエンドポイント作成
 2. URL: `https://<あなたのドメイン>/api/webhook`
-3. イベント: `checkout.session.completed`（必須）/ `charge.refunded` / `checkout.session.expired`
+3. イベント（定期購読に必要な3つ）:
+   - `checkout.session.completed` — 初回購入 → プラン付与
+   - `invoice.paid` — 毎月の継続課金成功 → プラン継続
+   - `customer.subscription.deleted` — 解約 → プラン解除
 4. 生成された署名シークレット（`whsec_live_...`）を `STRIPE_WEBHOOK_SECRET` に設定
+
+### Stripe Price の準備
+
+- 各プランのPriceは Stripe で **定期購読（Recurring / 毎月）** として作成する
+- `STRIPE_PRICE_STANDARD`（¥500/月）と `STRIPE_PRICE_PRO`（¥900/月）に設定
+- Priceが1回払い（One-time）だと checkout が `payment mode but passed a recurring price` エラーになる
 
 ### Supabase 設定
 
