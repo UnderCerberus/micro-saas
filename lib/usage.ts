@@ -35,6 +35,13 @@ export function setLoggedInUserId(id: string | null): void {
   window.__mikko_user_id = id ?? null;
 }
 
+/** ローカルに保存された匿名IDを直接読む（ログイン中でも基礎IDを取得したい時に使う）。 */
+export function rawAnonymousId(): string {
+  if (typeof window === "undefined") return "";
+  const KEY = "mikko_anon_id";
+  return localStorage.getItem(KEY) || "";
+}
+
 /** 月別ローカル利用回数（クライアント表示用）。 */
 export function getMonthlyUsage(storageKey: string): number {
   if (typeof window === "undefined") return 0;
